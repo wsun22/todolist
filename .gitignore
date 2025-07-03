@@ -1,0 +1,33 @@
+# Xcode
+DerivedData/
+*.xcworkspace
+*.xcuserstate
+*.xcuserdata
+*.xcodeproj/project.xcworkspace/xcuserdata/
+.idea/
+*.DS_Store
+
+# SwiftPM
+.build/
+
+# macOS
+.DS_Store
+
+# CocoaPods
+Pods/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+
+# Carthage
+Carthage/
+
+# Archives & temporary
+*.xcarchive
+*.ipa
+*.app
+
+# Environment files
+*.env
