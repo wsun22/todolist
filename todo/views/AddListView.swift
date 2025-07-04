@@ -12,30 +12,31 @@ struct AddListView: View {
     @Binding var isPresented: Bool
     
     @State var name: String = ""
-    @State var selectedIcon: String = "star"
-    @State var selectedColor: String = "#FFCC00"
-
-    private let iconOptions: [String] = [
+    @State var selectedIcon: String = iconOptions[0]
+    @State var selectedColor: String = colorOptions[0]
+    
+    private static let iconOptions: [String] = [
         "star", "briefcase", "house", "heart",
         "dumbbell", "cart", "book", "calendar",
         "lightbulb", "tray", "bookmark", "music.note"
     ]
-    
-    private let colorOptions: [String] = [
+
+    private static let colorOptions: [String] = [
         "#FFCC00", "#01C8EE", "#7A5FFF",
         "#F35BAC", "#32C77F", "#FF9442"
     ]
+
     
     var body: some View {
         ZStack {
             AppColors.background.ignoresSafeArea()
             
-            VStack(spacing: 48) {
+            VStack(spacing: 40) {
                 EnterNameSection(name: $name)
                 
-                ChooseIconSection(selectedIcon: $selectedIcon, icons: iconOptions)
+                ChooseIconSection(selectedIcon: $selectedIcon, icons: Self.iconOptions)
                 
-                ChooseColorSection(selectedColor: $selectedColor, colors: colorOptions)
+                ChooseColorSection(selectedColor: $selectedColor, colors: Self.colorOptions)
                 
                 PreviewCardSection(
                     list: List(
@@ -61,20 +62,30 @@ struct AddListView: View {
 
 private struct EnterNameSection: View {
     @Binding var name: String
-    
+
     var body: some View {
-        TextField("Enter list name...", text: $name)
-            .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(AppColors.backgroundSecondary)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(AppColors.separator, lineWidth: 1)
-            )
+        ZStack(alignment: .leading) {
+            if name.isEmpty {
+                Text("Enter list name...")
+                    .foregroundColor(AppColors.textSecondary.opacity(0.5))
+                    .padding(.horizontal, 20)
+            }
+
+            TextField("", text: $name)
+                .foregroundColor(AppColors.textSecondary)
+                .padding(16)
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(AppColors.backgroundSecondary)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(AppColors.separator, lineWidth: 1)
+        )
     }
 }
+
 
 private struct ChooseIconSection: View {
     @Binding var selectedIcon: String
@@ -123,7 +134,7 @@ private struct ChooseColorSection: View {
     ]
 
     var body: some View {
-        LazyVGrid(columns: columns, spacing: 12) {
+        LazyVGrid(columns: columns) {
             ForEach(colors, id: \.self) { hex in
                 Button {
                     selectedColor = hex

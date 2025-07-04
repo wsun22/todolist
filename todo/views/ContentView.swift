@@ -37,7 +37,6 @@ struct ContentView: View {
                             
                             Button {
                                 isAddingList = true
-                                print("add button pressed. isAddingList: \(isAddingList)")
                             } label: {
                                 AddListCardView()
                             }
@@ -73,14 +72,12 @@ struct ListCardView: View {
                     .font(.inter(fontStyle: .title2, fontWeight: .bold))
                     .foregroundStyle(Color(hex: list.color) ?? .gray)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.5)
             }
             
             Text(list.name)
                 .font(.inter(fontStyle: .headline, fontWeight: .semibold))
                 .foregroundStyle(Color(hex: list.color) ?? .gray)
                 .lineLimit(1)
-                .minimumScaleFactor(0.5)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 24)

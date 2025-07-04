@@ -28,11 +28,12 @@ class DatabaseManager {
             
             // Step 3: create lists and tasks tables
             try dbQueue.write { db in
+//                try db.drop(table: "lists") // dev-only
                 try db.create(table: "lists", ifNotExists: true) { t in
                     t.column("id").primaryKey()
                     t.column("name").notNull()
                     t.column("color").notNull()
-                    t.column("icon").notNull()
+                    t.column("icon").notNull() // ← renamed
                     t.column("created_at").notNull()
                 }
                 
