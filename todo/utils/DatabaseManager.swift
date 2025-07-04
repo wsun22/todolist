@@ -42,7 +42,7 @@ class DatabaseManager {
                         .notNull()
                         .indexed()
                         .references("lists", onDelete: .cascade)
-                    t.column("task").notNull()
+                    t.column("title").notNull()
                     t.column("is_complete").notNull()
                     t.column("created_at").notNull()
                     t.column("due_at")
@@ -111,26 +111,15 @@ class DatabaseManager {
         }
     }
     
-    func fetchAllTasks() -> [Task] {
-        do {
-            return try dbQueue.read { db in
-                try Task.fetchAll(db)
-            }
-        } catch {
-            print("❌ Failed to fetch all tasks: \(error)")
-            return []
-        }
-    }
-    
-    func fetchTasks(for list: List) -> [Task] {
+    func fetchTasks(for listId: UUID) -> [Task] {
         do {
             return try dbQueue.read { db in
                 try Task
-                    .filter(Column("list_id") == list.id)
+                    .filter(Column("list_id") == listId)
                     .fetchAll(db)
             }
         } catch {
-            print("❌ Failed to fetch tasks for list: \(list.id)")
+            print("❌ Failed to fetch tasks for list: \(listId), error: \(error)")
             return []
         }
     }
