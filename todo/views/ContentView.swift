@@ -10,7 +10,9 @@ import SwiftUI
 struct ContentView: View {
     @StateObject var listVM = ListViewModel()
     
-    @State var isAddingList: Bool = false
+    @State var selectedList: List? = nil
+    @State var showAddListView: Bool = false
+    @State var showListView: Bool = false
     
     private let columns = [
         GridItem(.flexible(), spacing: 16),
@@ -29,14 +31,15 @@ struct ContentView: View {
                                 let completed = listVM.completedTaskCount(list)
                                 let total = listVM.taskCount(list)
                                 Button {
-                                    print("list presed")
+                                    selectedList = list
+                                    showListView = true
                                 } label: {
                                     ListCardView(list: list, completed: completed, total: total)
                                 }
                             }
                             
                             Button {
-                                isAddingList = true
+                                showAddListView = true
                             } label: {
                                 AddListCardView()
                             }
@@ -44,10 +47,14 @@ struct ContentView: View {
                     }
                 }
                 .padding(16)
-
             }
-            .navigationDestination(isPresented: $isAddingList) {
-                AddListView(listVM: listVM, isPresented: $isAddingList)
+            .navigationDestination(isPresented: $showAddListView) {
+                AddListView(listVM: listVM, showAddListView: $showAddListView)
+            }
+            .navigationDestination(isPresented: $showListView) {
+                if let list = selectedList {
+                    ListView(list: list, showListView: $showListView)
+                }
             }
         }
 
@@ -87,7 +94,7 @@ struct ListCardView: View {
     }
 }
 
-struct AddListCardView: View {
+private struct AddListCardView: View {
     var body: some View {
         VStack {
             ZStack {

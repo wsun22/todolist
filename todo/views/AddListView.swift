@@ -9,7 +9,7 @@ import SwiftUI
 
 struct AddListView: View {
     @ObservedObject var listVM: ListViewModel
-    @Binding var isPresented: Bool
+    @Binding var showAddListView: Bool
     
     @State var name: String = ""
     @State var selectedIcon: String = iconOptions[0]
@@ -51,7 +51,7 @@ struct AddListView: View {
                     name: $name,
                     selectedIcon: selectedIcon,
                     selectedColor: selectedColor,
-                    isPresented: $isPresented
+                    showAddListView: $showAddListView
                 )
 
             }
@@ -149,12 +149,6 @@ private struct ChooseColorSection: View {
                 }
             }
         }
-//        .padding()
-//        .background(Color.white)
-//        .overlay {
-//            RoundedRectangle(cornerRadius: 12)
-//                .stroke(Color.white)
-//        }
     }
 }
 
@@ -173,7 +167,7 @@ private struct CreateList: View {
     let selectedIcon: String
     let selectedColor: String
     
-    @Binding var isPresented: Bool
+    @Binding var showAddListView: Bool
     
     var isDisabled: Bool {
         name.isEmpty
@@ -185,7 +179,7 @@ private struct CreateList: View {
             guard !trimmedName.isEmpty else { return }
 
             listVM.addList(name: trimmedName, color: selectedColor, icon: selectedIcon)
-            isPresented = false
+            showAddListView = false
         } label: {
             Text("Create list")
                 .font(.inter(fontStyle: .headline, fontWeight: .semibold))
@@ -199,9 +193,9 @@ private struct CreateList: View {
     }
 }
 
-#Preview {
-    AddListView(
-        listVM: ListViewModel(),
-        isPresented: .constant(true)
-    )
-}
+//#Preview {
+//    AddListView(
+//        listVM: ListViewModel(),
+//        showAddListView: .constant(true)
+//    )
+//}
