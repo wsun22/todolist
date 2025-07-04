@@ -13,12 +13,17 @@ struct AddListView: View {
     
     @State var name: String = ""
     @State var selectedIcon: String = "star"
+    @State var selectedColor: String = "#FFCC00"
 
-    
-    let iconOptions: [String] = [
+    private let iconOptions: [String] = [
         "star", "briefcase", "house", "heart",
         "dumbbell", "cart", "book", "calendar",
         "lightbulb", "tray", "bookmark", "music.note"
+    ]
+    
+    private let colorOptions: [String] = [
+        "#FFCC00", "#01C8EE", "#7A5FFF",
+        "#F35BAC", "#32C77F", "#FF9442"
     ]
     
     var body: some View {
@@ -27,10 +32,27 @@ struct AddListView: View {
             
             VStack(spacing: 48) {
                 EnterNameSection(name: $name)
-                    .border(.red)
                 
                 ChooseIconSection(selectedIcon: $selectedIcon, icons: iconOptions)
-                    .border(.red)
+                
+                ChooseColorSection(selectedColor: $selectedColor, colors: colorOptions)
+                
+                PreviewCardSection(
+                    list: List(
+                        name: name.isEmpty ? "New List" : name,
+                        color: selectedColor,
+                        icon: selectedIcon
+                    )
+                )
+                
+                CreateList(
+                    listVM: listVM,
+                    name: $name,
+                    selectedIcon: selectedIcon,
+                    selectedColor: selectedColor,
+                    isPresented: $isPresented
+                )
+
             }
             .padding(32)
         }
@@ -41,7 +63,7 @@ private struct EnterNameSection: View {
     @Binding var name: String
     
     var body: some View {
-        TextField("Enter list name", text: $name)
+        TextField("Enter list name...", text: $name)
             .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 12)
@@ -90,6 +112,81 @@ private struct ChooseIconSection: View {
     
 }
 
+private struct ChooseColorSection: View {
+    @Binding var selectedColor: String
+    let colors: [String]
+
+    private let columns = [
+        GridItem(.flexible()),
+        GridItem(.flexible()),
+        GridItem(.flexible())
+    ]
+
+    var body: some View {
+        LazyVGrid(columns: columns, spacing: 12) {
+            ForEach(colors, id: \.self) { hex in
+                Button {
+                    selectedColor = hex
+                } label: {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(hex: hex) ?? .gray).opacity(0.45)
+                        .frame(height: 44)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(selectedColor == hex ? AppColors.accent : .clear, lineWidth: 2)
+                        )
+                }
+            }
+        }
+//        .padding()
+//        .background(Color.white)
+//        .overlay {
+//            RoundedRectangle(cornerRadius: 12)
+//                .stroke(Color.white)
+//        }
+    }
+}
+
+private struct PreviewCardSection: View {
+    let list: List
+
+    var body: some View {
+        ListCardView(list: list, completed: 0, total: 0)
+            .frame(maxWidth: 190)
+    }
+}
+
+private struct CreateList: View {
+    let listVM: ListViewModel
+    @Binding var name: String
+    let selectedIcon: String
+    let selectedColor: String
+    
+    @Binding var isPresented: Bool
+    
+    var isDisabled: Bool {
+        name.isEmpty
+    }
+    
+    var body: some View {
+        Button {
+            let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmedName.isEmpty else { return }
+
+            listVM.addList(name: trimmedName, color: selectedColor, icon: selectedIcon)
+            isPresented = false
+        } label: {
+            Text("Create list")
+                .font(.inter(fontStyle: .headline, fontWeight: .semibold))
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(isDisabled ? AppColors.accent.opacity(0.4) : AppColors.accent)
+                .foregroundColor(isDisabled ? AppColors.textPrimary.opacity(0.7) : AppColors.textPrimary)
+                .cornerRadius(12)
+        }
+        .disabled(isDisabled)
+    }
+}
 
 #Preview {
     AddListView(

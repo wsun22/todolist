@@ -32,7 +32,7 @@ class DatabaseManager {
                     t.column("id").primaryKey()
                     t.column("name").notNull()
                     t.column("color").notNull()
-                    t.column("image").notNull()
+                    t.column("icon").notNull()
                     t.column("created_at").notNull()
                 }
                 

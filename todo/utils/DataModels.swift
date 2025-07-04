@@ -14,14 +14,14 @@ struct List: Codable, Identifiable, FetchableRecord, PersistableRecord {
     var id: UUID
     var name: String
     var color: String
-    var image: String
+    var icon: String
     var createdAt: Date
     
-    init(id: UUID = UUID(), name: String, color: String, image: String, createdAt: Date = Date()) {
+    init(id: UUID = UUID(), name: String, color: String, icon: String, createdAt: Date = Date()) {
         self.id = id
         self.name = name
         self.color = color
-        self.image = image
+        self.icon = icon
         self.createdAt = createdAt
     }
     
@@ -29,7 +29,7 @@ struct List: Codable, Identifiable, FetchableRecord, PersistableRecord {
         case id
         case name
         case color
-        case image
+        case icon
         case createdAt = "created_at"
     }
 }
@@ -47,8 +47,8 @@ class ListViewModel: ObservableObject {
         lists = dbManager.fetchAllLists()
     }
     
-    func addList(name: String, color: String, image: String) {
-        let list = List(name: name, color: color, image: image)
+    func addList(name: String, color: String, icon: String) {
+        let list = List(name: name, color: color, icon: icon)
         dbManager.createList(list) // update backend
         lists.append(list) // update UI
     }

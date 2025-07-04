@@ -63,7 +63,7 @@ struct ListCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Image(systemName: list.image)
+                Image(systemName: list.icon)
                     .font(.inter(fontStyle: .headline, fontWeight: .semibold))
                     .foregroundStyle(Color(hex: list.color) ?? .gray)
                 
@@ -72,11 +72,15 @@ struct ListCardView: View {
                 Text("\(completed)/\(total)")
                     .font(.inter(fontStyle: .title2, fontWeight: .bold))
                     .foregroundStyle(Color(hex: list.color) ?? .gray)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
             }
             
             Text(list.name)
                 .font(.inter(fontStyle: .headline, fontWeight: .semibold))
                 .foregroundStyle(Color(hex: list.color) ?? .gray)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 24)
@@ -107,13 +111,13 @@ struct AddListCardView: View {
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
     }
 }
-
-#Preview {
-    let previewVM = ListViewModel()
-    previewVM.lists = [
-        List(name: "Groceries", color: "#7A5FFF", image: "cart"),
-        List(name: "Work", color: "#01C8EE", image: "briefcase"),
-        List(name: "Fitness", color: "#FFCC00", image: "heart.fill")
-    ]
-    return ContentView(listVM: previewVM)
-}
+//
+//#Preview {
+//    let previewVM = ListViewModel()
+//    previewVM.lists = [
+//        List(name: "Groceries", color: "#7A5FFF", image: "cart"),
+//        List(name: "Work", color: "#01C8EE", image: "briefcase"),
+//        List(name: "Fitness", color: "#FFCC00", image: "heart.fill")
+//    ]
+//    return ContentView(listVM: previewVM)
+//}
