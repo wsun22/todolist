@@ -143,4 +143,28 @@ class DatabaseManager {
             print("❌ Failed to delete task: \(error)")
         }
     }
+    
+    func taskCount(for listId: UUID) -> Int {
+        do {
+            return try dbQueue.read { db in
+                try Task.filter(Column("list_id") == listId).fetchCount(db)
+            }
+        } catch {
+            print("❌ Failed to count tasks for list \(listId): \(error)")
+            return 0
+        }
+    }
+
+    func completedTaskCount(for listId: UUID) -> Int {
+        do {
+            return try dbQueue.read { db in
+                try Task
+                    .filter(Column("list_id") == listId && Column("is_complete") == true)
+                    .fetchCount(db)
+            }
+        } catch {
+            print("❌ Failed to count completed tasks for list \(listId): \(error)")
+            return 0
+        }
+    }
 }

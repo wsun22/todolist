@@ -14,9 +14,22 @@
 		18C84FC92E1470990098016F /* todo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = todo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		180A1E932E184B41002A21D6 /* Exceptions for "todo" folder in "todo" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 18C84FC82E1470990098016F /* todo */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		18C84FCB2E1470990098016F /* todo */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				180A1E932E184B41002A21D6 /* Exceptions for "todo" folder in "todo" target */,
+			);
 			path = todo;
 			sourceTree = "<group>";
 		};
@@ -265,6 +278,7 @@
 				DEVELOPMENT_TEAM = 8YHA6MY4ZJ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = todo/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Taskmaster;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -284,7 +298,7 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -298,6 +312,7 @@
 				DEVELOPMENT_TEAM = 8YHA6MY4ZJ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = todo/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Taskmaster;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -317,7 +332,7 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};

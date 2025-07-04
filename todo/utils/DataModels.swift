@@ -57,6 +57,14 @@ class ListViewModel: ObservableObject {
         dbManager.deleteList(list)
         lists.removeAll { $0.id == list.id }
     }
+    
+    func taskCount(_ list: List) -> Int {
+        return dbManager.taskCount(for: list.id)
+    }
+    
+    func completedTaskCount(_ list: List) -> Int {
+        return dbManager.completedTaskCount(for: list.id)
+    }
 }
 
 // MARK : - Task struct and VM
