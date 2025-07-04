@@ -10,34 +10,48 @@ import SwiftUI
 struct ContentView: View {
     @StateObject var listVM = ListViewModel()
     
+    @State var isAddingList: Bool = false
+    
     private let columns = [
         GridItem(.flexible(), spacing: 16),
         GridItem(.flexible(), spacing: 16)
     ]
     
     var body: some View {
-        ZStack {
-            Color.white.ignoresSafeArea()
-            
-            ScrollView {
-                VStack(spacing: 24) {
-                    LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(listVM.lists) { list in
-                            let completed = listVM.completedTaskCount(list)
-                            let total = listVM.taskCount(list)
-                            ListCardView(list: list, completed: completed, total: total)
-                        }
-                        
-                        Button {
+        NavigationStack {
+            ZStack {
+                AppColors.background.ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 24) {
+                        LazyVGrid(columns: columns, spacing: 16) {
+                            ForEach(listVM.lists) { list in
+                                let completed = listVM.completedTaskCount(list)
+                                let total = listVM.taskCount(list)
+                                Button {
+                                    print("list presed")
+                                } label: {
+                                    ListCardView(list: list, completed: completed, total: total)
+                                }
+                            }
                             
-                        } label: {
-                            AddListCardView()
+                            Button {
+                                isAddingList = true
+                                print("add button pressed. isAddingList: \(isAddingList)")
+                            } label: {
+                                AddListCardView()
+                            }
                         }
                     }
                 }
+                .padding(16)
+
             }
-            .padding(16)
+            .navigationDestination(isPresented: $isAddingList) {
+                AddListView(listVM: listVM, isPresented: $isAddingList)
+            }
         }
+
     }
 }
 
@@ -64,12 +78,11 @@ struct ListCardView: View {
                 .font(.inter(fontStyle: .headline, fontWeight: .semibold))
                 .foregroundStyle(Color(hex: list.color) ?? .gray)
         }
-        .padding(.horizontal, 16) // move padding here for inner spacing
+        .padding(.horizontal, 16)
         .padding(.vertical, 24)
         .background(RoundedRectangle(cornerRadius: 20)
             .fill((Color(hex: list.color) ?? .gray).opacity(0.15)))
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
-      //  .border(.red)
     }
 }
 
@@ -82,14 +95,14 @@ struct AddListCardView: View {
                     .foregroundStyle(AppColors.textSecondary.opacity(0.2))
 
                 Image(systemName: "plus")
-                    .font(.system(size: 24, weight: .semibold))
+                    .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(AppColors.textSecondary)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, minHeight: 120, maxHeight: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(AppColors.textSecondary.opacity(0.1))
+                .fill(AppColors.backgroundSecondary)
         )
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
     }

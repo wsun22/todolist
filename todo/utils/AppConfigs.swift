@@ -10,6 +10,7 @@ import SwiftUI
 
 enum AppColors {
     static let background = Color(red: 0.90, green: 0.97, blue: 0.90) // soft mint green
+    static let backgroundSecondary = Color.black.opacity(0.05)
     static let accent = Color(red: 122/255, green: 95/255, blue: 255/255) // soft purple
     static let textPrimary = Color.white
     static let textSecondary = Color.black.opacity(0.45)
