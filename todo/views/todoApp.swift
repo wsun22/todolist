@@ -9,11 +9,10 @@ import SwiftUI
 
 @main
 struct todoApp: App {
-    @StateObject var todoItemsVM = TodoItemViewModel()
     
     var body: some Scene {
         WindowGroup {
-            ContentView(todoItemsVM: todoItemsVM)
+            ContentView()
         }
     }
 }
