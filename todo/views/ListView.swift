@@ -12,16 +12,17 @@ struct ListView: View {
     let list: List
     @StateObject var taskVM: TaskViewModel
     @Binding var showListView: Bool
-    
     let onTasksChanged: () -> Void
+    @ObservedObject var toast: ToastManager
     
     @State var newTitle: String = ""
     
-    init(list: List, showListView: Binding<Bool>, onTasksChanged: @escaping () -> Void) {
+    init(list: List, showListView: Binding<Bool>, onTasksChanged: @escaping () -> Void, toast: ToastManager) {
         // 1. Assign plain values
         self.list = list
         self._showListView = showListView
         self.onTasksChanged = onTasksChanged
+        self.toast = toast
 
         // 2. Now it's safe to use `onTasksChanged` and `self` to create vm
         let vm = TaskViewModel(for: list)
@@ -46,16 +47,22 @@ struct ListView: View {
             VStack(spacing: 24) {
                 HeaderView(list: list,
                            completed: taskVM.tasks.filter{ $0.isComplete }.count,
-                           total: taskVM.tasks.count)
+                           total: taskVM.tasks.count,
+                           showListView: $showListView)
                 
-                NewTaskView(newTitle: $newTitle, taskVM: taskVM, list: list)
+                NewTaskView(newTitle: $newTitle, taskVM: taskVM, list: list, toast: toast)
                 
-                TaskRowView(taskVM: taskVM, list: list)
-                
+                TaskRowView(taskVM: taskVM, list: list, toast: toast)
             }
             .padding(.horizontal, 16)
             .ignoresSafeArea()
         }
+        .toast(isVisible: toast.isVisible, message: toast.message)
+        .onDisappear {
+            toast.isVisible = false
+        }
+        .hideKeyboardOnTap()
+        .navigationBarBackButtonHidden()
     }
 }
 
@@ -63,9 +70,12 @@ private struct HeaderView: View {
     let list: List
     let completed: Int
     let total: Int
+    @Binding var showListView: Bool
     
     var body: some View {
-        VStack {
+        VStack(spacing: 40) {
+            CustomBackButton(action: {  showListView = false })
+            
             HStack(spacing: 8) {
                 Image(systemName: list.icon)
                     .font(.inter(fontStyle: .headline, fontWeight: .semibold))
@@ -79,14 +89,22 @@ private struct HeaderView: View {
                 
                 Spacer()
                 
-                Text("\(completed)/\(total)")
+                Text(total == 0 ? "No tasks" : "\(completed)/\(total)")
                     .font(.inter(fontStyle: .title2, fontWeight: .semibold))
                     .foregroundStyle(Color(hex: list.color) ?? .gray)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .fill((Color(hex: list.color) ?? .gray).opacity(0.15))
+                    )
             }
 
         }
         .frame(maxWidth: .infinity)
-        .padding(.top, 120) // not ideal. later, make custom nav buttons?
+        .padding(.top, 80) // not ideal. later, make custom nav buttons?
         .padding(.bottom, 40)
         .padding(.horizontal, 24)
         .background((Color(hex: list.color) ?? .gray).opacity(0.25))
@@ -114,12 +132,17 @@ private struct NewTaskView: View {
     @Binding var newTitle: String
     var taskVM: TaskViewModel
     let list: List
+    @ObservedObject var toast: ToastManager
     
     private func submit() {
         let trimmed = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
+        
         taskVM.addTask(to: list, title: trimmed)
         newTitle = ""
+        
+        toast.show(message: "Task created!")
+        haptic()
     }
     
     var body: some View {
@@ -183,6 +206,8 @@ private struct TaskRowView: View {
     
     let list: List
     
+    @ObservedObject var toast: ToastManager
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 12) {
@@ -208,10 +233,13 @@ private struct TaskRowView: View {
                         withAnimation {
                             taskVM.toggleTask(task)
                         }
+                        haptic()
                     }
                     .onLongPressGesture {
                         taskToDelete = task
                         showDeleteConfirm = true
+                        
+                        haptic()
                     }
                     .confirmationDialog(
                         "Delete this task?",
@@ -222,6 +250,9 @@ private struct TaskRowView: View {
                             if let task = taskToDelete {
                                 taskVM.deleteTask(task)
                                 taskToDelete = nil
+                                toast.show(message: "Task deleted!")
+                                
+                                haptic()
                             }
                         }
                         Button("Cancel", role: .cancel) {

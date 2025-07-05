@@ -9,10 +9,12 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject var listVM = ListViewModel()
+    @StateObject var toast = ToastManager()
     
     @State var selectedList: List? = nil
     @State var showAddListView: Bool = false
     @State var showListView: Bool = false
+    @State var didCreateList: Bool = false
     
     @State private var listToDelete: List? = nil
     @State private var showDeleteDialog: Bool = false
@@ -39,6 +41,7 @@ struct ContentView: View {
                             onLongPress: { list in
                                 listToDelete = list
                                 showDeleteDialog = true
+                                haptic()
                             },
                             getCompletedCount: { list in
                                 listVM.completedTaskCount(list)
@@ -55,13 +58,16 @@ struct ContentView: View {
                 .padding(16)
             }
             .navigationDestination(isPresented: $showAddListView) {
-                AddListView(listVM: listVM, showAddListView: $showAddListView)
+                AddListView(listVM: listVM,
+                            showAddListView: $showAddListView,
+                            didCreateList: $didCreateList)
             }
             .navigationDestination(isPresented: $showListView) {
                 if let list = selectedList {
-                    ListView(list: list, showListView: $showListView, onTasksChanged: {
-                        listVM.refreshCount(for: list)
-                    })
+                    ListView(list: list,
+                             showListView: $showListView,
+                             onTasksChanged: { listVM.refreshCount(for: list) },
+                             toast: toast)
                 }
             }
             .confirmationDialog(
@@ -72,15 +78,24 @@ struct ContentView: View {
                 Button("Delete", role: .destructive) {
                     if let list = listToDelete {
                         listVM.deleteList(list)
+                        toast.show(message: "List deleted!")
                         listToDelete = nil
+                        
+                        haptic()
                     }
                 }
                 Button("Cancel", role: .cancel) {
                     listToDelete = nil
                 }
             }
+            .toast(isVisible: toast.isVisible, message: toast.message)
+            .onChange(of: showAddListView) {
+                if showAddListView == false && didCreateList {
+                    toast.show(message: "List created!")
+                    didCreateList = false
+                }
+            }
         }
-
     }
 }
 
@@ -146,9 +161,9 @@ struct ListCardView: View {
                     .foregroundStyle(Color(hex: list.color) ?? .gray)
                 
                 Spacer()
-                
+    
                 Text(total == 0 ? "No tasks" : "\(completed)/\(total)")
-                    .font(.inter(fontStyle: total == 0? .body : .title2, fontWeight: .semibold))
+                    .font(.inter(fontStyle: .title2, fontWeight: .semibold))
                     .foregroundStyle(Color(hex: list.color) ?? .gray)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
@@ -190,7 +205,7 @@ private struct AddListCardView: View {
                     .foregroundStyle(AppColors.textSecondary)
             }
         }
-        .frame(maxWidth: .infinity, minHeight: 110, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, minHeight: 115, maxHeight: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(AppColors.backgroundSecondary)
@@ -203,12 +218,20 @@ private struct AddListCardView: View {
     }
 }
 
-#Preview {
-    let previewVM = ListViewModel()
-    previewVM.lists = [
-        List(name: "Groceries", color: "#7A5FFF", icon: "cart"),
-        List(name: "Work", color: "#01C8EE", icon: "briefcase"),
-        List(name: "Fitness", color: "#FFCC00", icon: "heart.fill")
-    ]
-    return ContentView(listVM: previewVM)
+struct CustomBackButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "chevron.left")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(AppColors.textPrimary)
+                .padding(8)
+                .background(
+                    Circle()
+                        .fill(AppColors.backgroundSecondary)
+                )
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
 }

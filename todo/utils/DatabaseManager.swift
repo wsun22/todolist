@@ -34,6 +34,7 @@ final class DatabaseManager {
                     t.column("name").notNull()
                     t.column("color").notNull()
                     t.column("icon").notNull()
+                    t.column("idx").notNull()
                     t.column("created_at").notNull()
                 }
                 
@@ -47,6 +48,7 @@ final class DatabaseManager {
                     t.column("is_complete").notNull()
                     t.column("created_at").notNull()
                     t.column("due_at")
+                    t.column("idx").notNull()
                 }
             }
         } catch {

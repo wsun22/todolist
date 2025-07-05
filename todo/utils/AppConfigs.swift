@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 enum AppColors {
-    static let background = Color.white
+    static let background = Color(red: 230/255, green: 245/255, blue: 230/255)
     static let backgroundSecondary = Color.black.opacity(0.05)
     static let accent = Color(red: 122/255, green: 95/255, blue: 255/255) // soft purple
     static let textPrimary = Color.black.opacity(0.75)
@@ -78,5 +78,18 @@ extension Color {
         let b = Double(rgb & 0xFF) / 255
 
         self.init(red: r, green: g, blue: b)
+    }
+}
+
+extension View {
+    func hideKeyboardOnTap() -> some View {
+        self.gesture(
+            TapGesture().onEnded {
+                UIApplication.shared.sendAction(
+                    #selector(UIResponder.resignFirstResponder),
+                    to: nil, from: nil, for: nil
+                )
+            }
+        )
     }
 }

@@ -10,6 +10,7 @@ import SwiftUI
 struct AddListView: View {
     @ObservedObject var listVM: ListViewModel
     @Binding var showAddListView: Bool
+    @Binding var didCreateList: Bool
     
     @State var name: String = ""
     @State var selectedIcon: String = iconOptions[0]
@@ -17,8 +18,7 @@ struct AddListView: View {
     
     private static let iconOptions: [String] = [
         "star", "briefcase", "house", "heart",
-        "dumbbell", "cart", "book", "calendar",
-        "lightbulb", "tray", "bookmark", "music.note"
+        "dumbbell", "cart", "book", "calendar"
     ]
 
     private static let colorOptions: [String] = [
@@ -32,6 +32,8 @@ struct AddListView: View {
             AppColors.background.ignoresSafeArea()
             
             VStack(spacing: 40) {
+                CustomBackButton(action: { showAddListView = false })
+                
                 EnterNameSection(name: $name)
                 
                 ChooseIconSection(selectedIcon: $selectedIcon, icons: Self.iconOptions)
@@ -42,7 +44,8 @@ struct AddListView: View {
                     list: List(
                         name: name.isEmpty ? "New List" : name,
                         color: selectedColor,
-                        icon: selectedIcon
+                        icon: selectedIcon,
+                        idx: 0
                     )
                 )
                 
@@ -51,12 +54,16 @@ struct AddListView: View {
                     name: $name,
                     selectedIcon: selectedIcon,
                     selectedColor: selectedColor,
-                    showAddListView: $showAddListView
+                    showAddListView: $showAddListView,
+                    didCreateList: $didCreateList
                 )
 
             }
             .padding(32)
         }
+        .navigationBarBackButtonHidden()
+        .ignoresSafeArea(.keyboard)
+        .hideKeyboardOnTap()
     }
 }
 
@@ -103,6 +110,7 @@ private struct ChooseIconSection: View {
             ForEach(icons, id: \.self) { icon in
                 Button {
                     selectedIcon = icon
+                    haptic()
                 } label: {
                     Image(systemName: icon)
                         .font(.system(size: 20, weight: .semibold))
@@ -138,6 +146,7 @@ private struct ChooseColorSection: View {
             ForEach(colors, id: \.self) { hex in
                 Button {
                     selectedColor = hex
+                    haptic()
                 } label: {
                     RoundedRectangle(cornerRadius: 12)
                         .fill(Color(hex: hex) ?? .gray).opacity(0.45)
@@ -168,6 +177,7 @@ private struct CreateList: View {
     let selectedColor: String
     
     @Binding var showAddListView: Bool
+    @Binding var didCreateList: Bool
     
     var isDisabled: Bool {
         name.isEmpty
@@ -180,6 +190,9 @@ private struct CreateList: View {
 
             listVM.addList(name: trimmedName, color: selectedColor, icon: selectedIcon)
             showAddListView = false
+            didCreateList = true
+            
+            haptic()
         } label: {
             Text("Create list")
                 .font(.inter(fontStyle: .headline, fontWeight: .semibold))

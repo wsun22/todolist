@@ -15,13 +15,15 @@ struct List: Codable, Identifiable, Equatable, FetchableRecord, PersistableRecor
     var name: String
     var color: String
     var icon: String
+    var idx: Int
     var createdAt: Date
     
-    init(id: UUID = UUID(), name: String, color: String, icon: String, createdAt: Date = Date()) {
+    init(id: UUID = UUID(), name: String, color: String, icon: String, idx: Int, createdAt: Date = Date()) {
         self.id = id
         self.name = name
         self.color = color
         self.icon = icon
+        self.idx = idx
         self.createdAt = createdAt
     }
     
@@ -30,6 +32,7 @@ struct List: Codable, Identifiable, Equatable, FetchableRecord, PersistableRecor
         case name
         case color
         case icon
+        case idx
         case createdAt = "created_at"
     }
 }
@@ -48,7 +51,8 @@ final class ListViewModel: ObservableObject {
     }
     
     func addList(name: String, color: String, icon: String) {
-        let list = List(name: name, color: color, icon: icon)
+        let nextIdx = (lists.map { $0.idx }.max() ?? -1) + 1
+        let list = List(name: name, color: color, icon: icon, idx: nextIdx)
         dbManager.createList(list) // update backend
         lists.append(list) // update UI
     }
@@ -85,14 +89,16 @@ struct Task: Codable, Identifiable, FetchableRecord, PersistableRecord {
     var isComplete: Bool
     var createdAt: Date
     var dueAt: Date?
+    var idx: Int
     
-    init(id: UUID = UUID(), listId: UUID, title: String, isComplete: Bool, createdAt: Date = Date(), dueAt: Date?) {
+    init(id: UUID = UUID(), listId: UUID, title: String, isComplete: Bool, createdAt: Date = Date(), dueAt: Date?, idx: Int) {
         self.id = id
         self.listId = listId
         self.title = title
         self.isComplete = isComplete
         self.createdAt = createdAt
         self.dueAt = dueAt
+        self.idx = idx
     }
     
     enum CodingKeys: String, CodingKey {
@@ -102,6 +108,7 @@ struct Task: Codable, Identifiable, FetchableRecord, PersistableRecord {
         case isComplete = "is_complete"
         case createdAt = "created_at"
         case dueAt = "due_at"
+        case idx
     }
 }
 
@@ -123,14 +130,15 @@ final class TaskViewModel: ObservableObject {
     }
     
     func addTask(to list: List, title: String, isComplete: Bool = false, createdAt: Date = Date(), dueAt: Date? = nil) {
-        let task = Task(listId: list.id, title: title, isComplete: isComplete, createdAt: createdAt, dueAt: dueAt)
+        let maxIdx = (tasks.map { $0.idx }.max() ?? -1) + 1
+        let task = Task(listId: list.id, title: title, isComplete: isComplete, createdAt: createdAt, dueAt: dueAt, idx: maxIdx)
         dbManager.createTask(task)
         tasks.append(task)
         onTasksChanged?()
     }
     
     func toggleTask(_ task: Task) {
-        let updated = Task(id: task.id, listId: listId, title: task.title, isComplete: !task.isComplete, createdAt: task.createdAt, dueAt: task.dueAt)
+        let updated = Task(id: task.id, listId: listId, title: task.title, isComplete: !task.isComplete, createdAt: task.createdAt, dueAt: task.dueAt, idx: task.idx)
         dbManager.updateTask(updated)
         
         if let idx = tasks.firstIndex(where: { $0.id == task.id }) {
