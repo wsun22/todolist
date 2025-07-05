@@ -34,7 +34,7 @@ struct List: Codable, Identifiable, FetchableRecord, PersistableRecord {
     }
 }
 
-class ListViewModel: ObservableObject {
+final class ListViewModel: ObservableObject {
     private let dbManager = DatabaseManager.shared
 
     @Published var lists: [List] = []
@@ -81,7 +81,7 @@ struct Task: Codable, Identifiable, FetchableRecord, PersistableRecord {
     var createdAt: Date
     var dueAt: Date?
     
-    init(id: UUID = UUID(), listId: UUID, title: String, isComplete: Bool = false, createdAt: Date = Date(), dueAt: Date? = nil) {
+    init(id: UUID = UUID(), listId: UUID, title: String, isComplete: Bool, createdAt: Date = Date(), dueAt: Date?) {
         self.id = id
         self.listId = listId
         self.title = title
@@ -100,7 +100,7 @@ struct Task: Codable, Identifiable, FetchableRecord, PersistableRecord {
     }
 }
 
-class TaskViewModel: ObservableObject {
+final class TaskViewModel: ObservableObject {
     private let dbManager = DatabaseManager.shared
     
     @Published var tasks: [Task] = []
@@ -115,7 +115,7 @@ class TaskViewModel: ObservableObject {
         tasks = dbManager.fetchTasks(for: listId)
     }
     
-    func addTask(to list: List, title: String, isComplete: Bool, createdAt: Date = Date(), dueAt: Date? = nil) {
+    func addTask(to list: List, title: String, isComplete: Bool = false, createdAt: Date = Date(), dueAt: Date? = nil) {
         let task = Task(listId: list.id, title: title, isComplete: isComplete, createdAt: createdAt, dueAt: dueAt)
         dbManager.createTask(task)
         tasks.append(task)

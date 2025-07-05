@@ -8,7 +8,7 @@
 import Foundation
 import GRDB
 
-class DatabaseManager {
+final class DatabaseManager {
     static let shared = DatabaseManager()
     var dbQueue: DatabaseQueue!
     
