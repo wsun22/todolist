@@ -9,18 +9,35 @@ import Foundation
 import SwiftUI
 
 struct ListView: View {
-    @State var list: List
+    let list: List
     @StateObject var taskVM: TaskViewModel
     @Binding var showListView: Bool
     
+    let onTasksChanged: () -> Void
+    
     @State var newTitle: String = ""
     
-    init(list: List, showListView: Binding<Bool>) {
+    init(list: List, showListView: Binding<Bool>, onTasksChanged: @escaping () -> Void) {
+        // 1. Assign plain values
         self.list = list
-        // _ needed when initializing Property wrapped properties
         self._showListView = showListView
-        self._taskVM = StateObject(wrappedValue: TaskViewModel(for: list))
+        self.onTasksChanged = onTasksChanged
+
+        // 2. Now it's safe to use `onTasksChanged` and `self` to create vm
+        let vm = TaskViewModel(for: list)
+        vm.onTasksChanged = onTasksChanged
+        self._taskVM = StateObject(wrappedValue: vm)
     }
+    
+    // PREVIEW ONLY
+//    
+//    init(list: List, showListView: Binding<Bool>, taskVM: TaskViewModel) {
+//        self.list = list
+//        self._showListView = showListView
+//        self._taskVM = StateObject(wrappedValue: taskVM)
+//    }
+    
+    // END PREVIEW ONLY
     
     var body: some View {
         ZStack {
@@ -33,7 +50,8 @@ struct ListView: View {
                 
                 NewTaskView(newTitle: $newTitle, taskVM: taskVM, list: list)
                 
-                Spacer()
+                TaskRowView(taskVM: taskVM, list: list)
+                
             }
             .padding(.horizontal, 16)
             .ignoresSafeArea()
@@ -68,10 +86,10 @@ private struct HeaderView: View {
 
         }
         .frame(maxWidth: .infinity)
-        .padding(.top, 80)
+        .padding(.top, 120) // not ideal. later, make custom nav buttons?
         .padding(.bottom, 40)
         .padding(.horizontal, 24)
-        .background((Color(hex: list.color) ?? .gray).opacity(0.50))
+        .background((Color(hex: list.color) ?? .gray).opacity(0.25))
         .clipShape(
             RoundedCorner(corners: [.bottomLeft, .bottomRight], radius: 40)
         )
@@ -139,12 +157,12 @@ private struct NewTaskView: View {
             } label: {
                 ZStack {
                     Circle()
-                        .fill(AppColors.accent.opacity(0.45))
+                        .fill((Color(hex: list.color) ?? .gray).opacity(0.25))
                         .frame(width: 40, height: 40)
                     
                     Image(systemName: "arrow.right")
                         .font(.system(size: 20, weight: .semibold))
-                        .foregroundStyle(AppColors.accent)
+                        .foregroundStyle(Color(hex: list.color) ?? .gray)
                 }
             }
             .disabled(newTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -157,24 +175,94 @@ private struct NewTaskView: View {
     }
 }
 
-//#Preview {
-//    ListView()
-//}
-
-private struct ListViewPreviewWrapper: View {
-    @State var showListView: Bool = true
-
+private struct TaskRowView: View {
+    // this needs to be observed object. why? bc it says "watch the source of truth. if a @Published property changes, you need to know and rerun"
+    @ObservedObject var taskVM: TaskViewModel
+    @State private var taskToDelete: Task? = nil
+    @State private var showDeleteConfirm: Bool = false
+    
+    let list: List
+    
     var body: some View {
-        let mockList = List(
-            name: "Groceries",
-            color: "#7A5FFF",
-            icon: "cart"
-        )
+        ScrollView {
+            VStack(spacing: 12) {
+                ForEach(taskVM.tasks) { task in
+                    HStack {
+                        Image(systemName: task.isComplete ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(Color(hex: list.color) ?? .gray)
 
-        ListView(list: mockList, showListView: $showListView)
+                        Text(task.title)
+                            .font(.inter(fontStyle: .body))
+                            .foregroundStyle(AppColors.textPrimary)
+                            .strikethrough(task.isComplete, color: AppColors.textPrimary.opacity(0.8))
+                            .opacity(task.isComplete ? 0.8 : 1.0)
+
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
+                    .background((Color(hex: list.color) ?? .gray).opacity(0.25))
+                    .cornerRadius(16)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        withAnimation {
+                            taskVM.toggleTask(task)
+                        }
+                    }
+                    .onLongPressGesture {
+                        taskToDelete = task
+                        showDeleteConfirm = true
+                    }
+                    .confirmationDialog(
+                        "Delete this task?",
+                        isPresented: $showDeleteConfirm,
+                        titleVisibility: .visible
+                    ) {
+                        Button("Delete", role: .destructive) {
+                            if let task = taskToDelete {
+                                taskVM.deleteTask(task)
+                                taskToDelete = nil
+                            }
+                        }
+                        Button("Cancel", role: .cancel) {
+                            taskToDelete = nil
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
-#Preview {
-    ListViewPreviewWrapper()
-}
+/*
+ 
+ Preview content code below
+ 
+ */
+
+//private struct ListViewPreviewWrapper: View {
+//    @State var showListView: Bool = true
+//
+//    var body: some View {
+//        let mockList = List(
+//            name: "Groceries",
+//            color: "#7A5FFF",
+//            icon: "cart"
+//        )
+//
+//        let mockTasks = [
+//            Task(listId: mockList.id, title: "Buy milk", isComplete: false, dueAt: nil),
+//            Task(listId: mockList.id, title: "Eggs", isComplete: true, dueAt: nil),
+//            Task(listId: mockList.id, title: "Bread", isComplete: false, dueAt: nil)
+//        ]
+//
+//        let mockVM = TaskViewModel(for: mockList, mockTasks: mockTasks)
+//
+//        ListView(list: mockList, showListView: $showListView, taskVM: mockVM)
+//    }
+//}
+//
+//
+//#Preview {
+//    ListViewPreviewWrapper()
+//}

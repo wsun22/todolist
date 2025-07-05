@@ -12,7 +12,7 @@ enum AppColors {
     static let background = Color.white
     static let backgroundSecondary = Color.black.opacity(0.05)
     static let accent = Color(red: 122/255, green: 95/255, blue: 255/255) // soft purple
-    static let textPrimary = Color.white
+    static let textPrimary = Color.black.opacity(0.75)
     static let textSecondary = Color.black.opacity(0.45)
     static let separator = Color.black.opacity(0.1)
     

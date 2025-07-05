@@ -8,7 +8,7 @@
 import Foundation
 import GRDB
 
-struct List: Codable, Identifiable, FetchableRecord, PersistableRecord {
+struct List: Codable, Identifiable, Equatable, FetchableRecord, PersistableRecord {
     static let databaseTableName: String = "lists"
     
     var id: UUID
@@ -65,6 +65,11 @@ final class ListViewModel: ObservableObject {
     func completedTaskCount(_ list: List) -> Int {
         return dbManager.completedTaskCount(for: list.id)
     }
+    
+    func refreshCount(for list: List) {
+        // this is a manual refresh for this class. it says: "I didn't change any @Published properties directly, but trust me bro, act like I did"
+        objectWillChange.send()
+    }
 }
 
 //
@@ -106,6 +111,8 @@ final class TaskViewModel: ObservableObject {
     @Published var tasks: [Task] = []
     private let listId: UUID
     
+    var onTasksChanged: (() -> Void)?
+    
     init(for list: List) {
         self.listId = list.id
         loadTasks()
@@ -119,6 +126,7 @@ final class TaskViewModel: ObservableObject {
         let task = Task(listId: list.id, title: title, isComplete: isComplete, createdAt: createdAt, dueAt: dueAt)
         dbManager.createTask(task)
         tasks.append(task)
+        onTasksChanged?()
     }
     
     func toggleTask(_ task: Task) {
@@ -128,10 +136,12 @@ final class TaskViewModel: ObservableObject {
         if let idx = tasks.firstIndex(where: { $0.id == task.id }) {
             tasks[idx] = updated
         }
+        onTasksChanged?()
     }
     
     func deleteTask(_ task: Task) {
         dbManager.deleteTask(task)
         tasks.removeAll { $0.id == task.id }
+        onTasksChanged?()
     }
 }

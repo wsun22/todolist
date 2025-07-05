@@ -14,6 +14,9 @@ struct ContentView: View {
     @State var showAddListView: Bool = false
     @State var showListView: Bool = false
     
+    @State private var listToDelete: List? = nil
+    @State private var showDeleteDialog: Bool = false
+        
     private let columns = [
         GridItem(.flexible(), spacing: 16),
         GridItem(.flexible(), spacing: 16)
@@ -26,24 +29,27 @@ struct ContentView: View {
                 
                 ScrollView {
                     VStack(spacing: 24) {
-                        LazyVGrid(columns: columns, spacing: 16) {
-                            ForEach(listVM.lists) { list in
-                                let completed = listVM.completedTaskCount(list)
-                                let total = listVM.taskCount(list)
-                                Button {
-                                    selectedList = list
-                                    showListView = true
-                                } label: {
-                                    ListCardView(list: list, completed: completed, total: total)
-                                }
-                            }
-                            
-                            Button {
+                        ListGridView(
+                            lists: listVM.lists,
+                            listToDelete: listToDelete,
+                            onTap: { list in
+                                selectedList = list
+                                showListView = true
+                            },
+                            onLongPress: { list in
+                                listToDelete = list
+                                showDeleteDialog = true
+                            },
+                            getCompletedCount: { list in
+                                listVM.completedTaskCount(list)
+                            },
+                            getTotalCount: { list in
+                                listVM.taskCount(list)
+                            },
+                            onTapAddList: {
                                 showAddListView = true
-                            } label: {
-                                AddListCardView()
                             }
-                        }
+                        )
                     }
                 }
                 .padding(16)
@@ -53,13 +59,79 @@ struct ContentView: View {
             }
             .navigationDestination(isPresented: $showListView) {
                 if let list = selectedList {
-                    ListView(list: list, showListView: $showListView)
+                    ListView(list: list, showListView: $showListView, onTasksChanged: {
+                        listVM.refreshCount(for: list)
+                    })
+                }
+            }
+            .confirmationDialog(
+                "Delete this list?",
+                isPresented: $showDeleteDialog,
+                titleVisibility: .visible
+            ) {
+                Button("Delete", role: .destructive) {
+                    if let list = listToDelete {
+                        listVM.deleteList(list)
+                        listToDelete = nil
+                    }
+                }
+                Button("Cancel", role: .cancel) {
+                    listToDelete = nil
                 }
             }
         }
 
     }
 }
+
+struct ListGridView: View {
+    let lists: [List]
+    let listToDelete: List?
+    let onTap: (List) -> Void
+    let onLongPress: (List) -> Void
+    let getCompletedCount: (List) -> Int
+    let getTotalCount: (List) -> Int
+    let onTapAddList: () -> Void
+
+    private let columns = [
+        GridItem(.flexible(), spacing: 16),
+        GridItem(.flexible(), spacing: 16)
+    ]
+
+    var body: some View {
+        LazyVGrid(columns: columns, spacing: 16) {
+            ForEach(lists) { list in
+                let completed = getCompletedCount(list)
+                let total = getTotalCount(list)
+
+                ZStack {
+                    ListCardView(list: list, completed: completed, total: total)
+
+                    if listToDelete?.id == list.id {
+                        Color.red.opacity(0.6)
+                            .cornerRadius(20)
+                            .overlay(
+                                Image(systemName: "trash")
+                                    .font(.system(size: 28, weight: .bold))
+                                    .foregroundColor(.white)
+                            )
+                            .transition(.opacity)
+                            .animation(.easeInOut, value: listToDelete)
+                    }
+                }
+                .contentShape(Rectangle())
+                .onTapGesture { onTap(list) }
+                .onLongPressGesture { onLongPress(list) }
+            }
+
+            AddListCardView()
+                .onTapGesture {
+                    onTapAddList()
+                }
+        }
+    }
+}
+
 
 struct ListCardView: View {
     let list: List
@@ -70,15 +142,22 @@ struct ListCardView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Image(systemName: list.icon)
-                    .font(.inter(fontStyle: .headline, fontWeight: .semibold))
+                    .font(.system(size: 18, weight: .semibold))
                     .foregroundStyle(Color(hex: list.color) ?? .gray)
                 
                 Spacer()
                 
-                Text("\(completed)/\(total)")
-                    .font(.inter(fontStyle: .title2, fontWeight: .bold))
+                Text(total == 0 ? "No tasks" : "\(completed)/\(total)")
+                    .font(.inter(fontStyle: total == 0? .body : .title2, fontWeight: .semibold))
                     .foregroundStyle(Color(hex: list.color) ?? .gray)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .background(
+                        Capsule()
+                            .fill((Color(hex: list.color) ?? .gray).opacity(0.15))
+                    )
             }
             
             Text(list.name)
@@ -89,8 +168,12 @@ struct ListCardView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 24)
         .background(RoundedRectangle(cornerRadius: 20)
-            .fill((Color(hex: list.color) ?? .gray).opacity(0.15)))
+            .fill((Color(hex: list.color) ?? .gray).opacity(0.25)))
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(AppColors.separator, lineWidth: 0.75)
+        )
     }
 }
 
@@ -107,21 +190,25 @@ private struct AddListCardView: View {
                     .foregroundStyle(AppColors.textSecondary)
             }
         }
-        .frame(maxWidth: .infinity, minHeight: 120, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, minHeight: 110, maxHeight: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(AppColors.backgroundSecondary)
         )
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(AppColors.separator, lineWidth: 0.75)
+        )
     }
 }
-//
-//#Preview {
-//    let previewVM = ListViewModel()
-//    previewVM.lists = [
-//        List(name: "Groceries", color: "#7A5FFF", image: "cart"),
-//        List(name: "Work", color: "#01C8EE", image: "briefcase"),
-//        List(name: "Fitness", color: "#FFCC00", image: "heart.fill")
-//    ]
-//    return ContentView(listVM: previewVM)
-//}
+
+#Preview {
+    let previewVM = ListViewModel()
+    previewVM.lists = [
+        List(name: "Groceries", color: "#7A5FFF", icon: "cart"),
+        List(name: "Work", color: "#01C8EE", icon: "briefcase"),
+        List(name: "Fitness", color: "#FFCC00", icon: "heart.fill")
+    ]
+    return ContentView(listVM: previewVM)
+}
