@@ -198,8 +198,8 @@ private struct CreateList: View {
                 .font(.inter(fontStyle: .headline, fontWeight: .semibold))
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(isDisabled ? AppColors.accent.opacity(0.4) : AppColors.accent)
-                .foregroundColor(isDisabled ? AppColors.textPrimary.opacity(0.7) : AppColors.textPrimary)
+                .background(isDisabled ? AppColors.accent.opacity(0.3) : AppColors.accent)
+                .foregroundColor(isDisabled ? Color.white.opacity(0.3) : Color.white)
                 .cornerRadius(12)
         }
         .disabled(isDisabled)
