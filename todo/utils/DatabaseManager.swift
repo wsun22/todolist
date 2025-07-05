@@ -26,14 +26,14 @@ class DatabaseManager {
             // STEP 2: tells GRDB: this is the file path to the SQLite db. Set up the queue for it
             dbQueue = try DatabaseQueue(path: fileURL.path)
             
-            // Step 3: create lists and tasks tables
+            // STEP 3: create lists and tasks tables
             try dbQueue.write { db in
 //                try db.drop(table: "lists") // dev-only
                 try db.create(table: "lists", ifNotExists: true) { t in
                     t.column("id").primaryKey()
                     t.column("name").notNull()
                     t.column("color").notNull()
-                    t.column("icon").notNull() // ← renamed
+                    t.column("icon").notNull()
                     t.column("created_at").notNull()
                 }
                 
@@ -49,14 +49,13 @@ class DatabaseManager {
                     t.column("due_at")
                 }
             }
-            
-            print("✅ Database setup complete")
         } catch {
-            print("❌ Database setup failed: \(error)")
+
         }
     }
-    
-    // MARK: - CRUD for lists table
+    //
+    // CRUD for lists table
+    //
     
     func createList(_ list: List) {
         do {
@@ -100,7 +99,9 @@ class DatabaseManager {
         }
     }
     
-    // MARK: - CRUD for tasks table
+    //
+    // CRUD for tasks table
+    //
     
     func createTask(_ task: Task) {
         do {

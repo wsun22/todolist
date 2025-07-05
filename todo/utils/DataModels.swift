@@ -67,7 +67,9 @@ class ListViewModel: ObservableObject {
     }
 }
 
-// MARK : - Task struct and VM
+//
+// Task struct and VM
+//
 
 struct Task: Codable, Identifiable, FetchableRecord, PersistableRecord {
     static let databaseTableName: String = "tasks"
