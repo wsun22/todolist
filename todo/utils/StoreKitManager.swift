@@ -23,14 +23,14 @@ final class StoreKitManager: ObservableObject {
     
     private init() {
         _Concurrency.Task {
-            await loadProducts()
-            await checkPurchases()
-            listenForTransactions()
-            isSubscribed = computeIsSubscribed()
+            await loadProducts() // run 1st
+            await checkPurchases() // run 2nd
+            isSubscribed = checkIsSubscribed() // run 3rd
+            listenForTransactions() // run 4th
         }
     }
     
-    func computeIsSubscribed() -> Bool {
+    func checkIsSubscribed() -> Bool {
         return purchasedProductIDs.contains(TaskmasterProduct.weekly.rawValue) ||
                purchasedProductIDs.contains(TaskmasterProduct.yearly.rawValue)
     }
