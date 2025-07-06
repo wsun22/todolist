@@ -9,10 +9,12 @@ import SwiftUI
 
 @main
 struct todoApp: App {
+    @StateObject private var storeKit = StoreKitManager.shared
     
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(storeKit)
         }
     }
 }
