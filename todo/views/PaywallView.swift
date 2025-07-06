@@ -7,32 +7,40 @@
 
 import Foundation
 import SwiftUI
+import StoreKit
 
 struct PaywallView: View {
     @EnvironmentObject var storeKit: StoreKitManager
+    @State var selectedProduct: Product? = nil
+    
+    private func setDefaultProductIfNeeded() {
+        if selectedProduct == nil && !storeKit.products.isEmpty {
+            selectedProduct = storeKit.products.last
+        }
+    }
     
     var body: some View {
         ZStack {
             AppColors.background.ignoresSafeArea()
             
-            VStack(spacing: 36) {
+            VStack(spacing: 24) {
                 HeaderView()
                 
                 FeaturesView()
                 
-                if storeKit.products.isEmpty {
-                    Text("🔄 Loading products...")
-                } else {
-                    ForEach(storeKit.products, id: \.id) { product in
-                        Text(product.displayName)
-                    }
-                }
+                ProductsView(products: storeKit.products, selectedProduct: $selectedProduct)
                 
                 Spacer()
                 
             }
             .padding(.horizontal, 16)
             .ignoresSafeArea()
+        }
+        .onAppear {
+            setDefaultProductIfNeeded()
+        }
+        .onChange(of: storeKit.products) { _, newProducts in
+            setDefaultProductIfNeeded()
         }
     }
 }
@@ -106,7 +114,6 @@ private struct FeaturesView: View {
                     FeatureRow(feature: features[idx])
                 }
             }
-            
         }
     }
     
@@ -116,7 +123,7 @@ private struct FeaturesView: View {
         var body: some View {
             HStack {
                 Image(systemName: feature.icon)
-                    .font(.system(size: 24, weight: .semibold))
+                    .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(feature.color)
                 
                 VStack(alignment: .leading, spacing: 4) {
@@ -127,7 +134,7 @@ private struct FeaturesView: View {
                         .minimumScaleFactor(0.75)
                     
                     Text(feature.description)
-                        .font(.inter(fontStyle: .subheadline))
+                        .font(.inter(fontStyle: .caption))
                         .foregroundStyle(AppColors.textPrimary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
@@ -148,6 +155,76 @@ private struct FeaturesView: View {
         }
     }
 }
+
+private struct ProductsView: View {
+    let products: [Product]
+    @Binding var selectedProduct: Product?
+    
+    var body: some View {
+        HStack {
+            ForEach(products) { product in
+                ProductButton(product: product, selectedProduct: $selectedProduct)
+            }
+        }
+    }
+    
+    private struct ProductButton: View {
+        let product: Product
+        @Binding var selectedProduct: Product?
+
+        var body: some View {
+            Button {
+                selectedProduct = product
+                haptic()
+            } label: {
+                VStack(alignment: .leading, spacing: 8) {
+                    // Display short name (e.g. "Weekly")
+                    Text(product.displayName
+                        .replacingOccurrences(of: "taskmaster+ ", with: "")
+                        .capitalized)
+                    .font(.inter(fontStyle: .title3, fontWeight: .semibold))
+                    .foregroundStyle(AppColors.textPrimary)
+
+                    // Display price per time unit
+                    Text(pricePerInterval)
+                        .font(.inter(fontStyle: .headline, fontWeight: .semibold))
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(product == selectedProduct ? AppColors.accent.opacity(0.4) : AppColors.background)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(lineWidth: 1)
+                        .foregroundStyle(product == selectedProduct ? AppColors.accent : AppColors.separator)
+                )
+            }
+        }
+
+        private var pricePerInterval: String {
+            guard let unit = product.subscription?.subscriptionPeriod.unit else {
+                return product.displayPrice
+            }
+
+            let interval: String
+            switch unit {
+            case .day: interval = "/ day"
+            case .week: interval = "/ week"
+            case .month: interval = "/ month"
+            case .year: interval = "/ year"
+            @unknown default: interval = ""
+            }
+
+            return product.displayPrice + " " + interval
+        }
+    }
+
+}
+
 
 #Preview {
     PaywallView()
