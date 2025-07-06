@@ -99,7 +99,7 @@ struct ContentView: View {
     }
 }
 
-struct ListGridView: View {
+private struct ListGridView: View {
     let lists: [List]
     let listToDelete: List?
     let onTap: (List) -> Void

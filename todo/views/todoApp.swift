@@ -13,7 +13,7 @@ struct todoApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            PaywallView()
                 .environmentObject(storeKit)
         }
     }

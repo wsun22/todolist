@@ -37,14 +37,17 @@ final class StoreKitManager: ObservableObject {
     
     func loadProducts() async {
         let ids: Set<String> = Set(TaskmasterProduct.allCases.map { $0.rawValue })
+        print(ids)
+
         do {
             let storeProducts = try await Product.products(for: ids)
-            self.products = storeProducts
+            self.products = storeProducts.sorted(by: { $0.price < $1.price })
+            print(products)
         } catch {
-            print("❌ Failed to load products: \(error)")
+            print("❌ [StoreKit] Failed to load products: \(error)")
         }
     }
-    
+
     func checkPurchases() async {
         var owned: Set<String> = []
         

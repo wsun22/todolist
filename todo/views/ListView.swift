@@ -100,6 +100,7 @@ private struct HeaderView: View {
                         Capsule()
                             .fill((Color(hex: list.color) ?? .gray).opacity(0.15))
                     )
+                
             }
 
         }
@@ -111,20 +112,11 @@ private struct HeaderView: View {
         .clipShape(
             RoundedCorner(corners: [.bottomLeft, .bottomRight], radius: 40)
         )
-    }
-    
-    private struct RoundedCorner: Shape {
-        var corners: UIRectCorner
-        var radius: CGFloat
-        
-        func path(in rect: CGRect) -> Path {
-            let path = UIBezierPath(
-                roundedRect: rect,
-                byRoundingCorners: corners,
-                cornerRadii: CGSize(width: radius, height: radius)
-            )
-            return Path(path.cgPath)
-        }
+        .overlay(
+            RoundedCorner(corners: [.bottomLeft, .bottomRight], radius: 40)
+                .stroke(AppColors.separator, lineWidth: 1)
+        )
+        .shadow(radius: 3)
     }
 }
 
