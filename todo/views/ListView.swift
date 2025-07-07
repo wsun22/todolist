@@ -55,7 +55,7 @@ struct ListView: View {
                 TaskRowView(taskVM: taskVM, list: list, toast: toast)
             }
             .padding(.horizontal, 16)
-            .ignoresSafeArea()
+            .ignoresSafeArea(edges: .top)
         }
         .toast(isVisible: toast.isVisible, message: toast.message)
         .onDisappear {
@@ -104,27 +104,17 @@ private struct HeaderView: View {
 
         }
         .frame(maxWidth: .infinity)
-        .padding(.top, 80) // not ideal. later, make custom nav buttons?
-        .padding(.bottom, 40)
+        .padding(.top, 56) // not ideal. later, make custom nav buttons?
+        .padding(.bottom, 24)
         .padding(.horizontal, 24)
         .background((Color(hex: list.color) ?? .gray).opacity(0.25))
         .clipShape(
             RoundedCorner(corners: [.bottomLeft, .bottomRight], radius: 40)
         )
-    }
-    
-    private struct RoundedCorner: Shape {
-        var corners: UIRectCorner
-        var radius: CGFloat
-        
-        func path(in rect: CGRect) -> Path {
-            let path = UIBezierPath(
-                roundedRect: rect,
-                byRoundingCorners: corners,
-                cornerRadii: CGSize(width: radius, height: radius)
-            )
-            return Path(path.cgPath)
-        }
+        .overlay(
+            RoundedCorner(corners: [.bottomLeft, .bottomRight], radius: 40)
+                .stroke(AppColors.separator, lineWidth: 1)
+        )
     }
 }
 
@@ -262,6 +252,7 @@ private struct TaskRowView: View {
                 }
             }
         }
+        .scrollIndicators(.hidden)
     }
 }
 

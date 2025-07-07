@@ -7,10 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1870C6E42E1C423A0061BE18 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1870C6E32E1C423A0061BE18 /* StoreKit.framework */; };
 		18C84FDB2E149C860098016F /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 18C84FDA2E149C860098016F /* GRDB */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1870C6E32E1C423A0061BE18 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		18C84FC92E1470990098016F /* todo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = todo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -41,16 +43,26 @@
 			buildActionMask = 2147483647;
 			files = (
 				18C84FDB2E149C860098016F /* GRDB in Frameworks */,
+				1870C6E42E1C423A0061BE18 /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1870C6E22E1C423A0061BE18 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1870C6E32E1C423A0061BE18 /* StoreKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		18C84FC02E1470990098016F = {
 			isa = PBXGroup;
 			children = (
 				18C84FCB2E1470990098016F /* todo */,
+				1870C6E22E1C423A0061BE18 /* Frameworks */,
 				18C84FCA2E1470990098016F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -289,7 +301,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ws.todo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -323,7 +335,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ws.todo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

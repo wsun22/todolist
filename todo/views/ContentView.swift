@@ -8,13 +8,17 @@
 import SwiftUI
 
 struct ContentView: View {
+    @EnvironmentObject var storeKit: StoreKitManager
+    @EnvironmentObject var toast: ToastManager
+    
     @StateObject var listVM = ListViewModel()
-    @StateObject var toast = ToastManager()
     
     @State var selectedList: List? = nil
     @State var showAddListView: Bool = false
     @State var showListView: Bool = false
+    @State var showPaywallView: Bool = false
     @State var didCreateList: Bool = false
+//    @State var showSettingsView: Bool = false
     
     @State private var listToDelete: List? = nil
     @State private var showDeleteDialog: Bool = false
@@ -31,6 +35,8 @@ struct ContentView: View {
                 
                 ScrollView {
                     VStack(spacing: 24) {
+                        HeaderView(showPaywallView: $showPaywallView)
+                        
                         ListGridView(
                             lists: listVM.lists,
                             listToDelete: listToDelete,
@@ -55,7 +61,10 @@ struct ContentView: View {
                         )
                     }
                 }
-                .padding(16)
+                .padding(.horizontal, 16)
+                .ignoresSafeArea(edges: .top)
+                .scrollIndicators(.hidden)
+
             }
             .navigationDestination(isPresented: $showAddListView) {
                 AddListView(listVM: listVM,
@@ -70,6 +79,12 @@ struct ContentView: View {
                              toast: toast)
                 }
             }
+            .sheet(isPresented: $showPaywallView) {
+                PaywallView()
+            }
+//            .sheet(isPresented: $showSettingsView) {
+//                SettingsView()
+//            }
             .confirmationDialog(
                 "Delete this list?",
                 isPresented: $showDeleteDialog,
@@ -99,7 +114,68 @@ struct ContentView: View {
     }
 }
 
-struct ListGridView: View {
+private struct HeaderView: View {
+    @EnvironmentObject var storeKit: StoreKitManager
+    @Binding var showPaywallView: Bool
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Image("logo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 24, height: 24)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            
+            Text(storeKit.isSubscribed ? "taskmaster+" : "taskmaster")
+                .font(.inter(fontStyle: .title3, fontWeight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+            
+            Spacer()
+            
+            if !storeKit.isSubscribed {
+                Button {
+                    showPaywallView = true
+                } label: {
+                    Text("get+")
+                        .font(.inter(fontStyle: .callout, fontWeight: .semibold))
+                        .foregroundStyle(.white)
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 12)
+                        .background(AppColors.accent)
+                        .clipShape(Capsule())
+                        .overlay(
+                            Capsule()
+                                .stroke(lineWidth: 1)
+                                .foregroundStyle(AppColors.separator)
+                        )
+                        .shadow(radius: 2)
+                }
+            }
+            
+//            Button {
+//                showSettingsView = true
+//            } label: {
+//                Image(systemName: "gearshape")
+//                    .font(.inter(fontStyle: .callout, fontWeight: .semibold))
+//                    .foregroundStyle(.white)
+//                    .padding(6)
+//                    .background(AppColors.accent.opacity(0.4))
+//                    .clipShape(Circle())
+//                    .shadow(radius: 2)
+//            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 80)
+        .padding(.bottom, 24)
+        .padding(.horizontal, 24)
+        .background(AppColors.accent)
+        .clipShape(RoundedCorner(corners: [.bottomLeft, .bottomRight], radius: 40))
+    }
+}
+
+private struct ListGridView: View {
     let lists: [List]
     let listToDelete: List?
     let onTap: (List) -> Void
@@ -146,7 +222,6 @@ struct ListGridView: View {
         }
     }
 }
-
 
 struct ListCardView: View {
     let list: List
@@ -234,4 +309,10 @@ struct CustomBackButton: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
+}
+
+#Preview {
+    ContentView()
+        .environmentObject(StoreKitManager.shared)
+        .environmentObject(ToastManager())
 }

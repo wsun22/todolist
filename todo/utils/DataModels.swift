@@ -7,6 +7,7 @@
 
 import Foundation
 import GRDB
+import StoreKit
 
 struct List: Codable, Identifiable, Equatable, FetchableRecord, PersistableRecord {
     static let databaseTableName: String = "lists"
@@ -120,6 +121,9 @@ final class TaskViewModel: ObservableObject {
     
     var onTasksChanged: (() -> Void)?
     
+    // IGNORE: for rating app
+    private var hasRequestedReview: Bool = UserDefaults.standard.bool(forKey: "hasRequestedReview")
+
     init(for list: List) {
         self.listId = list.id
         loadTasks()
@@ -145,6 +149,21 @@ final class TaskViewModel: ObservableObject {
             tasks[idx] = updated
         }
         onTasksChanged?()
+        
+        // IGNORE: for rating app
+        if !hasRequestedReview {
+            if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
+                DispatchQueue.main.async {
+                    if #available(iOS 18.0, *) {
+                        AppStore.requestReview(in: scene)
+                    } else {
+                        SKStoreReviewController.requestReview(in: scene)
+                    }
+                }
+                UserDefaults.standard.set(true, forKey: "hasRequestedReview")
+                hasRequestedReview = true // 👈 update the cached value
+            }
+        }
     }
     
     func deleteTask(_ task: Task) {
