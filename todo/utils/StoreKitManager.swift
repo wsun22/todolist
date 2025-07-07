@@ -31,7 +31,7 @@ final class StoreKitManager: ObservableObject {
     }
     
     func checkIsSubscribed() -> Bool {
-        print(purchasedProductIDs)
+//        print(purchasedProductIDs)
         return purchasedProductIDs.contains(TaskmasterProduct.weekly.rawValue) ||
                purchasedProductIDs.contains(TaskmasterProduct.yearly.rawValue)
     }
