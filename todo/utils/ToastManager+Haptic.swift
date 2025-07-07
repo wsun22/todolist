@@ -49,7 +49,7 @@ extension View {
 
             if isVisible {
                 ToastView(message: message)
-                    .padding(.top, 60)
+                    .padding(.top, 40)
                     .zIndex(1)
             }
         }

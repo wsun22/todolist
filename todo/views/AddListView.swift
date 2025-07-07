@@ -15,10 +15,21 @@ struct AddListView: View {
     @State var name: String = ""
     @State var selectedIcon: String = iconOptions[0]
     @State var selectedColor: String = colorOptions[0]
+    @State var showPremiumIcons: Bool = false
+    
+    @EnvironmentObject var storeKit: StoreKitManager
+    @EnvironmentObject var toast: ToastManager
     
     private static let iconOptions: [String] = [
         "star", "briefcase", "house", "heart",
         "dumbbell", "cart", "book", "calendar"
+    ]
+    
+    private static let premiumIconOptions: [String] = [
+        "paintpalette", "globe", "leaf", "moon",
+        "flame", "camera", "gamecontroller", "pencil",
+        "gift", "graduationcap", "music.note", "film",
+        "bolt", "cloud", "bicycle", "scissors"
     ]
 
     private static let colorOptions: [String] = [
@@ -26,44 +37,52 @@ struct AddListView: View {
         "#F35BAC", "#32C77F", "#FF9442"
     ]
 
-    
     var body: some View {
         ZStack {
             AppColors.background.ignoresSafeArea()
             
-            VStack(spacing: 40) {
-                CustomBackButton(action: { showAddListView = false })
-                
-                EnterNameSection(name: $name)
-                
-                ChooseIconSection(selectedIcon: $selectedIcon, icons: Self.iconOptions)
-                
-                ChooseColorSection(selectedColor: $selectedColor, colors: Self.colorOptions)
-                
-                PreviewCardSection(
-                    list: List(
-                        name: name.isEmpty ? "New List" : name,
-                        color: selectedColor,
-                        icon: selectedIcon,
-                        idx: 0
+            ScrollView {
+                VStack(spacing: 40) {
+                    CustomBackButton(action: { showAddListView = false })
+                    
+                    EnterNameSection(name: $name)
+                    
+                    ChooseIconSection(
+                        selectedIcon: $selectedIcon,
+                        icons: Self.iconOptions,
+                        premiumIcons: Self.premiumIconOptions,
+                        showPremiumIcons: $showPremiumIcons,
+                        storeKit: storeKit,
+                        toast: toast)
+                    
+                    ChooseColorSection(selectedColor: $selectedColor, colors: Self.colorOptions)
+                    
+                    PreviewCardSection(
+                        list: List(
+                            name: name.isEmpty ? "New List" : name,
+                            color: selectedColor,
+                            icon: selectedIcon,
+                            idx: 0
+                        )
                     )
-                )
-                
-                CreateList(
-                    listVM: listVM,
-                    name: $name,
-                    selectedIcon: selectedIcon,
-                    selectedColor: selectedColor,
-                    showAddListView: $showAddListView,
-                    didCreateList: $didCreateList
-                )
-
+                    
+                    CreateList(
+                        listVM: listVM,
+                        name: $name,
+                        selectedIcon: selectedIcon,
+                        selectedColor: selectedColor,
+                        showAddListView: $showAddListView,
+                        didCreateList: $didCreateList
+                    )
+                    
+                }
+                .padding(32)
             }
-            .padding(32)
         }
         .navigationBarBackButtonHidden()
         .ignoresSafeArea(.keyboard)
         .hideKeyboardOnTap()
+        .toast(isVisible: toast.isVisible, message: toast.message)
     }
 }
 
@@ -93,10 +112,17 @@ private struct EnterNameSection: View {
     }
 }
 
-
 private struct ChooseIconSection: View {
     @Binding var selectedIcon: String
     let icons: [String]
+    let premiumIcons: [String]
+    @Binding var showPremiumIcons: Bool
+    let storeKit: StoreKitManager
+    let toast: ToastManager
+    
+    var displayIcons: [String]  {
+        showPremiumIcons ? icons + premiumIcons : icons
+    }
     
     private let columns = [
         GridItem(.flexible()),
@@ -106,29 +132,52 @@ private struct ChooseIconSection: View {
     ]
     
     var body: some View {
-        LazyVGrid(columns: columns, spacing: 16) {
-            ForEach(icons, id: \.self) { icon in
-                Button {
-                    selectedIcon = icon
-                    haptic()
-                } label: {
-                    Image(systemName: icon)
-                        .font(.system(size: 20, weight: .semibold))
-                        .frame(width: 44, height: 44)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(selectedIcon == icon ? AppColors.accent.opacity(0.15) : AppColors.backgroundSecondary)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(selectedIcon == icon ? AppColors.accent : AppColors.separator, lineWidth: 1)
-                        )
-                        .foregroundStyle(AppColors.textSecondary)
+        VStack(spacing: 8) {
+            LazyVGrid(columns: columns, spacing: 16) {
+                ForEach(displayIcons, id: \.self) { icon in
+                    Button {
+                        let isPremium: Bool = premiumIcons.contains(icon)
+                        let isLocked: Bool = isPremium && !storeKit.isSubscribed
+                        if !isLocked {
+                            selectedIcon = icon
+                            haptic()
+                        } else {
+                            haptic(weight: .light)
+                            toast.show(message: "Unlock premium icons with taskmaster+")
+                        }
+                    } label: {
+                        Image(systemName: icon)
+                            .font(.system(size: 20, weight: .semibold))
+                            .frame(width: 44, height: 44)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(selectedIcon == icon ? AppColors.accent.opacity(0.15) : AppColors.backgroundSecondary)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(selectedIcon == icon ? AppColors.accent : AppColors.separator, lineWidth: 1)
+                            )
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
                 }
             }
+            Button {
+                showPremiumIcons.toggle()
+            } label: {
+                Image(systemName: showPremiumIcons ? "chevron.up" : "chevron.down")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(AppColors.textPrimary)
+                    .padding(8)
+                    .background(
+                        Circle()
+                            .fill(AppColors.backgroundSecondary)
+                    )
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+            .padding(.top, 4)
+
         }
     }
-    
 }
 
 private struct ChooseColorSection: View {
@@ -205,10 +254,11 @@ private struct CreateList: View {
         .disabled(isDisabled)
     }
 }
-
+//
 //#Preview {
 //    AddListView(
 //        listVM: ListViewModel(),
-//        showAddListView: .constant(true)
+//        showAddListView: .constant(true),
+//        didCreateList: .constant(false)
 //    )
 //}

@@ -9,9 +9,9 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var storeKit: StoreKitManager
+    @EnvironmentObject var toast: ToastManager
     
     @StateObject var listVM = ListViewModel()
-    @StateObject var toast = ToastManager()
     
     @State var selectedList: List? = nil
     @State var showAddListView: Bool = false
@@ -161,7 +161,7 @@ private struct HeaderView: View {
                 Image(systemName: "gearshape")
                     .font(.inter(fontStyle: .callout, fontWeight: .semibold))
                     .foregroundStyle(.white)
-                    .padding(8)
+                    .padding(6)
                     .background(AppColors.accent.opacity(0.4))
                     .clipShape(Circle())
                     .shadow(radius: 2)
@@ -316,4 +316,5 @@ struct CustomBackButton: View {
 #Preview {
     ContentView()
         .environmentObject(StoreKitManager.shared)
+        .environmentObject(ToastManager())
 }
