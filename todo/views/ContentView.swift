@@ -147,7 +147,6 @@ private struct ListGridView: View {
     }
 }
 
-
 struct ListCardView: View {
     let list: List
     let completed: Int
@@ -234,4 +233,9 @@ struct CustomBackButton: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
+}
+
+#Preview {
+    ContentView()
+        .environmentObject(StoreKitManager.shared)
 }

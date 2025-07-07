@@ -12,6 +12,7 @@ import StoreKit
 struct PaywallView: View {
     @EnvironmentObject var storeKit: StoreKitManager
     @State var selectedProduct: Product? = nil
+    @StateObject private var toastManager = ToastManager()
     
     private func setDefaultProductIfNeeded() {
         if selectedProduct == nil && !storeKit.products.isEmpty {
@@ -30,7 +31,7 @@ struct PaywallView: View {
                 
                 ProductsView(products: storeKit.products, selectedProduct: $selectedProduct)
                 
-                Spacer()
+                PurchaseButton(selectedProduct: selectedProduct, toastManager: toastManager)
                 
             }
             .padding(.horizontal, 16)
@@ -42,6 +43,7 @@ struct PaywallView: View {
         .onChange(of: storeKit.products) { _, newProducts in
             setDefaultProductIfNeeded()
         }
+        .toast(isVisible: toastManager.isVisible, message: toastManager.message)
     }
 }
 
@@ -222,7 +224,85 @@ private struct ProductsView: View {
             return product.displayPrice + " " + interval
         }
     }
+}
 
+private struct PurchaseButton: View {
+    @EnvironmentObject var storeKit: StoreKitManager
+    let selectedProduct: Product?
+    let toastManager: ToastManager
+    @Environment(\.openURL) var openURL
+
+    let termsURL = URL(string: "https://www.notion.so/taskmaster-Terms-Conditions-22767265edb080c0b7cfe1fddc686104")!
+    let privacyURL = URL(string: "https://www.notion.so/taskmaster-Privacy-Policy-22767265edb080f69860c67be33eb333")!
+
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Button {
+                haptic()
+                _Concurrency.Task {
+                    if let product = selectedProduct {
+                        let success = await storeKit.purchase(product)
+                        
+                        if success {
+                            toastManager.show(message: "🎉 Subscribed!", duration: 3.0)
+                        } else {
+                            toastManager.show(message: "Purchase cancelled", duration: 3.0)
+                        }
+                        
+                        haptic()
+                    }
+                }
+            } label: {
+                HStack {
+                    Text("Continue")
+                        .font(.inter(fontStyle: .title3, fontWeight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(AppColors.accent)
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(lineWidth: 1)
+                                .foregroundStyle(AppColors.accent)
+                        }
+                }
+            }
+            
+            HStack {
+                Button("Restore") {
+                    _Concurrency.Task {
+                        let success = await storeKit.restorePurchases()
+
+                        if success {
+                            toastManager.show(message: "✅ Restored purchases", duration: 3.0)
+                        } else {
+                            toastManager.show(message: "Nothing to restore", duration: 3.0)
+                        }
+                    }
+                }
+                
+                Spacer()
+                
+                Button("Terms & Conditions") {
+                    openURL(termsURL)
+                }
+                
+                Spacer()
+                
+                Button("Privacy Policy") {
+                    openURL(privacyURL)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 16)
+            .font(.inter(fontStyle: .footnote))
+            .foregroundStyle(AppColors.textSecondary)
+            .underline()
+            
+        }
+    }
 }
 
 
