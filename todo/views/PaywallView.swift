@@ -24,18 +24,21 @@ struct PaywallView: View {
         ZStack {
             AppColors.background.ignoresSafeArea()
             
-            VStack(spacing: 24) {
-                HeaderView()
-                
-                FeaturesView()
-                
-                ProductsView(products: storeKit.products, selectedProduct: $selectedProduct)
-                
-                PurchaseButton(selectedProduct: selectedProduct, toastManager: toastManager)
-                
+            ScrollView {
+                VStack(spacing: 24) {
+                    HeaderView()
+                    
+                    FeaturesView()
+                    
+                    ProductsView(products: storeKit.products, selectedProduct: $selectedProduct)
+                    
+                    PurchaseButton(selectedProduct: selectedProduct, toastManager: toastManager)
+                }
             }
+            .scrollIndicators(.hidden)
             .padding(.horizontal, 16)
-            .ignoresSafeArea()
+            .ignoresSafeArea(edges: .top)
+            
         }
         .onAppear {
             setDefaultProductIfNeeded()
@@ -71,7 +74,7 @@ private struct HeaderView: View {
                 .minimumScaleFactor(0.5)
         }
         .frame(maxWidth: .infinity)
-        .padding(.top, 80)
+        .padding(.top, 56)
         .padding(.bottom, 24)
         .padding(.horizontal, 24)
         .background(AppColors.accent)

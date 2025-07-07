@@ -55,7 +55,7 @@ struct ListView: View {
                 TaskRowView(taskVM: taskVM, list: list, toast: toast)
             }
             .padding(.horizontal, 16)
-            .ignoresSafeArea()
+            .ignoresSafeArea(edges: .top)
         }
         .toast(isVisible: toast.isVisible, message: toast.message)
         .onDisappear {
@@ -116,7 +116,6 @@ private struct HeaderView: View {
             RoundedCorner(corners: [.bottomLeft, .bottomRight], radius: 40)
                 .stroke(AppColors.separator, lineWidth: 1)
         )
-        .shadow(radius: 3)
     }
 }
 
@@ -254,6 +253,7 @@ private struct TaskRowView: View {
                 }
             }
         }
+        .scrollIndicators(.hidden)
     }
 }
 

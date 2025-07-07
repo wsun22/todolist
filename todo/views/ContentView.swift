@@ -14,6 +14,7 @@ struct ContentView: View {
     @State var selectedList: List? = nil
     @State var showAddListView: Bool = false
     @State var showListView: Bool = false
+    @State var showPaywallView: Bool = false
     @State var didCreateList: Bool = false
     
     @State private var listToDelete: List? = nil
@@ -31,6 +32,9 @@ struct ContentView: View {
                 
                 ScrollView {
                     VStack(spacing: 24) {
+                        HeaderView(showPaywallView: $showPaywallView)
+                        
+                        
                         ListGridView(
                             lists: listVM.lists,
                             listToDelete: listToDelete,
@@ -55,7 +59,10 @@ struct ContentView: View {
                         )
                     }
                 }
-                .padding(16)
+                .padding(.horizontal, 16)
+                .ignoresSafeArea(edges: .top)
+                .scrollIndicators(.hidden)
+
             }
             .navigationDestination(isPresented: $showAddListView) {
                 AddListView(listVM: listVM,
@@ -69,6 +76,9 @@ struct ContentView: View {
                              onTasksChanged: { listVM.refreshCount(for: list) },
                              toast: toast)
                 }
+            }
+            .sheet(isPresented: $showPaywallView) {
+                PaywallView()
             }
             .confirmationDialog(
                 "Delete this list?",
@@ -96,6 +106,48 @@ struct ContentView: View {
                 }
             }
         }
+    }
+}
+
+private struct HeaderView: View {
+    @Binding var showPaywallView: Bool
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Image("logo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 24, height: 24)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            
+            Text("taskmaster+")
+                .font(.inter(fontStyle: .title3, fontWeight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+            
+            Spacer()
+            
+            Button {
+                showPaywallView = true
+            } label: {
+                Text("get+")
+                    .font(.inter(fontStyle: .callout, fontWeight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 12)
+                    .background(AppColors.accent)
+                    .clipShape(Capsule())
+                    .shadow(radius: 2)
+            }
+
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 80)
+        .padding(.bottom, 24)
+        .padding(.horizontal, 24)
+        .background(AppColors.accent)
+        .clipShape(RoundedCorner(corners: [.bottomLeft, .bottomRight], radius: 40))
     }
 }
 
