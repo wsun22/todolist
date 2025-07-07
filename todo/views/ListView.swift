@@ -100,13 +100,12 @@ private struct HeaderView: View {
                         Capsule()
                             .fill((Color(hex: list.color) ?? .gray).opacity(0.15))
                     )
-                
             }
 
         }
         .frame(maxWidth: .infinity)
-        .padding(.top, 80) // not ideal. later, make custom nav buttons?
-        .padding(.bottom, 40)
+        .padding(.top, 56) // not ideal. later, make custom nav buttons?
+        .padding(.bottom, 24)
         .padding(.horizontal, 24)
         .background((Color(hex: list.color) ?? .gray).opacity(0.25))
         .clipShape(
