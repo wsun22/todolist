@@ -16,6 +16,7 @@ struct AddListView: View {
     @State var selectedIcon: String = iconOptions[0]
     @State var selectedColor: String = colorOptions[0]
     @State var showPremiumIcons: Bool = false
+    @State var showPremiumColors: Bool = false
     
     @EnvironmentObject var storeKit: StoreKitManager
     @EnvironmentObject var toast: ToastManager
@@ -36,6 +37,21 @@ struct AddListView: View {
         "#FFCC00", "#01C8EE", "#7A5FFF",
         "#F35BAC", "#32C77F", "#FF9442"
     ]
+    
+    private static let premiumColorOptions: [String] = [
+        "#C084FC", // strong lavender
+        "#F472B6", // hot pink
+        "#34D399", // vivid mint green
+        "#F59E0B", // bold amber
+        "#60A5FA", // bright blue
+        "#4B5563", // medium gray
+        "#1F2937", // slate / near-black
+        "#A855F7", // purple
+        "#EF4444", // red
+        "#10B981", // emerald
+        "#3B82F6", // strong blue
+        "#EC4899"  // magenta-pink
+    ]
 
     var body: some View {
         ZStack {
@@ -55,7 +71,13 @@ struct AddListView: View {
                         storeKit: storeKit,
                         toast: toast)
                     
-                    ChooseColorSection(selectedColor: $selectedColor, colors: Self.colorOptions)
+                    ChooseColorSection(
+                        selectedColor: $selectedColor,
+                        colors: Self.colorOptions,
+                        premiumColors: Self.premiumColorOptions,
+                        showPremiumColors: $showPremiumColors,
+                        storeKit: storeKit,
+                        toast: toast)
                     
                     PreviewCardSection(
                         list: List(
@@ -132,7 +154,7 @@ private struct ChooseIconSection: View {
     ]
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 0) {
             LazyVGrid(columns: columns, spacing: 16) {
                 ForEach(displayIcons, id: \.self) { icon in
                     Button {
@@ -161,6 +183,7 @@ private struct ChooseIconSection: View {
                     }
                 }
             }
+            
             Button {
                 showPremiumIcons.toggle()
             } label: {
@@ -174,7 +197,7 @@ private struct ChooseIconSection: View {
                     )
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
-            .padding(.top, 4)
+            .padding(.top, 8)
 
         }
     }
@@ -183,6 +206,14 @@ private struct ChooseIconSection: View {
 private struct ChooseColorSection: View {
     @Binding var selectedColor: String
     let colors: [String]
+    let premiumColors: [String]
+    @Binding var showPremiumColors: Bool
+    let storeKit: StoreKitManager
+    let toast: ToastManager
+    
+    var displayColors: [String] {
+        showPremiumColors ? colors + premiumColors : colors
+    }
 
     private let columns = [
         GridItem(.flexible()),
@@ -191,21 +222,45 @@ private struct ChooseColorSection: View {
     ]
 
     var body: some View {
-        LazyVGrid(columns: columns) {
-            ForEach(colors, id: \.self) { hex in
-                Button {
-                    selectedColor = hex
-                    haptic()
-                } label: {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(hex: hex) ?? .gray).opacity(0.45)
-                        .frame(height: 44)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(selectedColor == hex ? AppColors.accent : .clear, lineWidth: 2)
-                        )
+        VStack(spacing: 0) {
+            LazyVGrid(columns: columns) {
+                ForEach(displayColors, id: \.self) { color in
+                    Button {
+                        let isPremium: Bool = premiumColors.contains(color)
+                        let isLocked = isPremium && !storeKit.isSubscribed
+                        if !isLocked {
+                            selectedColor = color
+                            haptic()
+                        } else {
+                            haptic()
+                            toast.show(message: "Unlock premium colors with taskmaster+")
+                        }
+                    } label: {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(hex: color) ?? .gray).opacity(0.45)
+                            .frame(height: 44)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(selectedColor == color ? AppColors.accent : .clear, lineWidth: 2)
+                            )
+                    }
                 }
             }
+            
+            Button {
+                showPremiumColors.toggle()
+            } label: {
+                Image(systemName: showPremiumColors ? "chevron.up" : "chevron.down")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(AppColors.textPrimary)
+                    .padding(8)
+                    .background(
+                        Circle()
+                            .fill(AppColors.backgroundSecondary)
+                    )
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+            .padding(.top, 4)
         }
     }
 }

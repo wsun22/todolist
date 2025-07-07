@@ -31,6 +31,7 @@ final class StoreKitManager: ObservableObject {
     }
     
     func checkIsSubscribed() -> Bool {
+        print(purchasedProductIDs)
         return purchasedProductIDs.contains(TaskmasterProduct.weekly.rawValue) ||
                purchasedProductIDs.contains(TaskmasterProduct.yearly.rawValue)
     }
@@ -70,6 +71,7 @@ final class StoreKitManager: ObservableObject {
 
                 purchasedProductIDs.insert(transaction.productID)
                 print("✅ Purchase success: \(transaction.productID)")
+                isSubscribed = checkIsSubscribed()
                 await transaction.finish()
                 return true
 
@@ -101,6 +103,7 @@ final class StoreKitManager: ObservableObject {
         
         self.purchasedProductIDs = restored
         print("✅ Restored purchases: \(restored)")
+        isSubscribed = checkIsSubscribed()
         return true
         
     }
@@ -112,6 +115,7 @@ final class StoreKitManager: ObservableObject {
  
                 self.purchasedProductIDs.insert(transaction.productID)
                 print("📦 Received transaction update: \(transaction.productID)")
+                isSubscribed = checkIsSubscribed()
                 
                 await transaction.finish()
             }

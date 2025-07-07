@@ -21,6 +21,8 @@ struct ToastView: View {
             .cornerRadius(12)
             .shadow(radius: 5)
             .transition(.move(edge: .top).combined(with: .opacity))
+            .lineLimit(1)
+            .minimumScaleFactor(0.75)
     }
 }
 

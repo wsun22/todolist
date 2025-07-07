@@ -18,7 +18,7 @@ struct ContentView: View {
     @State var showListView: Bool = false
     @State var showPaywallView: Bool = false
     @State var didCreateList: Bool = false
-    @State var showSettingsView: Bool = false
+//    @State var showSettingsView: Bool = false
     
     @State private var listToDelete: List? = nil
     @State private var showDeleteDialog: Bool = false
@@ -35,7 +35,7 @@ struct ContentView: View {
                 
                 ScrollView {
                     VStack(spacing: 24) {
-                        HeaderView(showPaywallView: $showPaywallView, showSettingsView: $showSettingsView)
+                        HeaderView(showPaywallView: $showPaywallView)
                         
                         ListGridView(
                             lists: listVM.lists,
@@ -82,9 +82,9 @@ struct ContentView: View {
             .sheet(isPresented: $showPaywallView) {
                 PaywallView()
             }
-            .sheet(isPresented: $showSettingsView) {
-                SettingsView()
-            }
+//            .sheet(isPresented: $showSettingsView) {
+//                SettingsView()
+//            }
             .confirmationDialog(
                 "Delete this list?",
                 isPresented: $showDeleteDialog,
@@ -117,7 +117,6 @@ struct ContentView: View {
 private struct HeaderView: View {
     @EnvironmentObject var storeKit: StoreKitManager
     @Binding var showPaywallView: Bool
-    @Binding var showSettingsView: Bool
     
     var body: some View {
         HStack(spacing: 8) {
@@ -155,18 +154,17 @@ private struct HeaderView: View {
                 }
             }
             
-            Button {
-                showSettingsView = true
-            } label: {
-                Image(systemName: "gearshape")
-                    .font(.inter(fontStyle: .callout, fontWeight: .semibold))
-                    .foregroundStyle(.white)
-                    .padding(6)
-                    .background(AppColors.accent.opacity(0.4))
-                    .clipShape(Circle())
-                    .shadow(radius: 2)
-            }
-
+//            Button {
+//                showSettingsView = true
+//            } label: {
+//                Image(systemName: "gearshape")
+//                    .font(.inter(fontStyle: .callout, fontWeight: .semibold))
+//                    .foregroundStyle(.white)
+//                    .padding(6)
+//                    .background(AppColors.accent.opacity(0.4))
+//                    .clipShape(Circle())
+//                    .shadow(radius: 2)
+//            }
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 80)
