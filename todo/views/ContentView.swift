@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ContentView: View {
+    @EnvironmentObject var storeKit: StoreKitManager
+    
     @StateObject var listVM = ListViewModel()
     @StateObject var toast = ToastManager()
     
@@ -16,6 +18,7 @@ struct ContentView: View {
     @State var showListView: Bool = false
     @State var showPaywallView: Bool = false
     @State var didCreateList: Bool = false
+    @State var showSettingsView: Bool = false
     
     @State private var listToDelete: List? = nil
     @State private var showDeleteDialog: Bool = false
@@ -32,8 +35,7 @@ struct ContentView: View {
                 
                 ScrollView {
                     VStack(spacing: 24) {
-                        HeaderView(showPaywallView: $showPaywallView)
-                        
+                        HeaderView(showPaywallView: $showPaywallView, showSettingsView: $showSettingsView)
                         
                         ListGridView(
                             lists: listVM.lists,
@@ -80,6 +82,9 @@ struct ContentView: View {
             .sheet(isPresented: $showPaywallView) {
                 PaywallView()
             }
+            .sheet(isPresented: $showSettingsView) {
+                SettingsView()
+            }
             .confirmationDialog(
                 "Delete this list?",
                 isPresented: $showDeleteDialog,
@@ -110,7 +115,9 @@ struct ContentView: View {
 }
 
 private struct HeaderView: View {
+    @EnvironmentObject var storeKit: StoreKitManager
     @Binding var showPaywallView: Bool
+    @Binding var showSettingsView: Bool
     
     var body: some View {
         HStack(spacing: 8) {
@@ -120,7 +127,7 @@ private struct HeaderView: View {
                 .frame(width: 24, height: 24)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             
-            Text("taskmaster+")
+            Text(storeKit.isSubscribed ? "taskmaster+" : "taskmaster")
                 .font(.inter(fontStyle: .title3, fontWeight: .semibold))
                 .foregroundStyle(.white)
                 .lineLimit(1)
@@ -128,16 +135,35 @@ private struct HeaderView: View {
             
             Spacer()
             
+            if !storeKit.isSubscribed {
+                Button {
+                    showPaywallView = true
+                } label: {
+                    Text("get+")
+                        .font(.inter(fontStyle: .callout, fontWeight: .semibold))
+                        .foregroundStyle(.white)
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 12)
+                        .background(AppColors.accent)
+                        .clipShape(Capsule())
+                        .overlay(
+                            Capsule()
+                                .stroke(lineWidth: 1)
+                                .foregroundStyle(AppColors.separator)
+                        )
+                        .shadow(radius: 2)
+                }
+            }
+            
             Button {
-                showPaywallView = true
+                showSettingsView = true
             } label: {
-                Text("get+")
+                Image(systemName: "gearshape")
                     .font(.inter(fontStyle: .callout, fontWeight: .semibold))
                     .foregroundStyle(.white)
-                    .padding(.vertical, 4)
-                    .padding(.horizontal, 12)
-                    .background(AppColors.accent)
-                    .clipShape(Capsule())
+                    .padding(8)
+                    .background(AppColors.accent.opacity(0.4))
+                    .clipShape(Circle())
                     .shadow(radius: 2)
             }
 
