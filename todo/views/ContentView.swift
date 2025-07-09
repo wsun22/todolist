@@ -165,7 +165,7 @@ private struct HeaderView: View {
                 Image(systemName: "gearshape")
                     .font(.inter(fontStyle: .callout, fontWeight: .semibold))
                     .foregroundStyle(.white)
-                    .padding(8)
+                    .padding(6)
                     .background(AppColors.accent.opacity(0.4))
                     .clipShape(Circle())
                     .shadow(radius: 2)
