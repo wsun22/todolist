@@ -96,7 +96,6 @@ struct AddListView: View {
                         showAddListView: $showAddListView,
                         didCreateList: $didCreateList
                     )
-                    
                 }
                 .padding(32)
             }
@@ -269,7 +268,7 @@ private struct PreviewCardSection: View {
     let list: List
 
     var body: some View {
-        ListCardView(list: list, completed: 0, total: 0)
+        ListCardView(list: list, completed: 5, total: 7)
             .frame(maxWidth: 190)
     }
 }

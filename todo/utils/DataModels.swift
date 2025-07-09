@@ -153,6 +153,7 @@ final class TaskViewModel: ObservableObject {
         // IGNORE: for rating app
         if !hasRequestedReview {
             if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
+                
                 DispatchQueue.main.async {
                     if #available(iOS 18.0, *) {
                         AppStore.requestReview(in: scene)
@@ -160,8 +161,9 @@ final class TaskViewModel: ObservableObject {
                         SKStoreReviewController.requestReview(in: scene)
                     }
                 }
+                
                 UserDefaults.standard.set(true, forKey: "hasRequestedReview")
-                hasRequestedReview = true // 👈 update the cached value
+                hasRequestedReview = true
             }
         }
     }

@@ -84,8 +84,8 @@ private struct HeaderView: View {
                 Text(list.name)
                     .font(.inter(fontStyle: .title2, fontWeight: .semibold))
                     .foregroundStyle(Color(hex: list.color) ?? .gray)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.6)
                 
                 Spacer()
                 

@@ -243,7 +243,7 @@ struct ListCardView: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.6)
+                    .minimumScaleFactor(0.5)
                     .background(
                         Capsule()
                             .fill((Color(hex: list.color) ?? .gray).opacity(0.15))
@@ -254,6 +254,7 @@ struct ListCardView: View {
                 .font(.inter(fontStyle: .headline, fontWeight: .semibold))
                 .foregroundStyle(Color(hex: list.color) ?? .gray)
                 .lineLimit(1)
+        //        .minimumScaleFactor(0.8)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 24)
