@@ -9,15 +9,12 @@ import Foundation
 import SwiftUI
 
 enum AppColors {
-    static let background = Color(red: 230/255, green: 245/255, blue: 230/255)
-    static let backgroundSecondary = Color.black.opacity(0.05)
+    static let background = Color("AppBackground")
+    static let backgroundSecondary = Color("BackgroundSecondary")
     static let accent = Color(red: 122/255, green: 95/255, blue: 255/255).opacity(0.7) // soft purple
-    static let textPrimary = Color.black.opacity(0.75)
-    static let textSecondary = Color.black.opacity(0.45)
-    static let separator = Color.black.opacity(0.1)
-    
-    static let done = Color.green
-    static let pending = Color.orange
+    static let textPrimary = Color("TextPrimary")
+    static let textSecondary = Color("TextSecondary")
+    static let separator = Color("MySeparator")
 }
 
 
@@ -106,4 +103,8 @@ struct RoundedCorner: Shape {
         )
         return Path(path.cgPath)
     }
+}
+
+enum AppAppearance: String, CaseIterable {
+    case system, light, dark
 }
