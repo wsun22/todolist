@@ -103,7 +103,6 @@ private struct FeaturesView: View {
         .init(icon: "moon", title: "Dark mode", description: "Access to a beautiful dark mode", color: .gray),
         .init(icon: "heart", title: "Support an indie developer", description: "Get updates, features, and good chakra", color: .red),
         .init(icon: "hourglass", title: "... and more!", description: "Your feedback helps shape what’s next", color: .cyan)
-
     ]
     
     var body: some View {
@@ -144,8 +143,6 @@ private struct FeaturesView: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
                 }
-                
-                
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(8)
@@ -235,8 +232,8 @@ private struct PurchaseButton: View {
     let toastManager: ToastManager
     @Environment(\.openURL) var openURL
 
-    let termsURL = URL(string: "https://www.notion.so/taskmaster-Terms-Conditions-22767265edb080c0b7cfe1fddc686104")!
-    let privacyURL = URL(string: "https://www.notion.so/taskmaster-Privacy-Policy-22767265edb080f69860c67be33eb333")!
+    private let termsURL = URL(string: "https://www.notion.so/taskmaster-Terms-Conditions-22767265edb080c0b7cfe1fddc686104")!
+    private let privacyURL = URL(string: "https://www.notion.so/taskmaster-Privacy-Policy-22767265edb080f69860c67be33eb333")!
 
     
     var body: some View {
