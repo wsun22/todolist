@@ -16,6 +16,8 @@ struct ListView: View {
     @ObservedObject var toast: ToastManager
     
     @State var newTitle: String = ""
+    @State var showMoreView: Bool = false
+    @State var dueDate: Date? = nil
     
     init(list: List, showListView: Binding<Bool>, onTasksChanged: @escaping () -> Void, toast: ToastManager) {
         // 1. Assign plain values
@@ -50,7 +52,12 @@ struct ListView: View {
                            total: taskVM.tasks.count,
                            showListView: $showListView)
                 
-                NewTaskView(newTitle: $newTitle, taskVM: taskVM, list: list, toast: toast)
+                NewTaskView(newTitle: $newTitle,
+                            showMoreView: $showMoreView,
+                            dueDate: $dueDate,
+                            taskVM: taskVM,
+                            list: list,
+                            toast: toast)
                 
                 TaskRowView(taskVM: taskVM, list: list, toast: toast)
             }
@@ -101,7 +108,6 @@ private struct HeaderView: View {
                             .fill((Color(hex: list.color) ?? .gray).opacity(0.15))
                     )
             }
-
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 56) // not ideal. later, make custom nav buttons?
@@ -120,73 +126,170 @@ private struct HeaderView: View {
 
 private struct NewTaskView: View {
     @Binding var newTitle: String
+    @Binding var showMoreView: Bool
+    @Binding var dueDate: Date?
     var taskVM: TaskViewModel
     let list: List
     @ObservedObject var toast: ToastManager
-    
+
+    @EnvironmentObject var storeKit: StoreKitManager
+
+    @State private var showDatePicker = false
+
     private func submit() {
         let trimmed = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        
-        taskVM.addTask(to: list, title: trimmed)
+
+        taskVM.addTask(to: list, title: trimmed, dueAt: dueDate)
         newTitle = ""
-        
+        showMoreView = false
+        dueDate = nil
+        showDatePicker = false
+
         toast.show(message: "Task created!")
         haptic()
     }
-    
+
+    private func formattedDate(_ date: Date) -> String {
+        let thisYear = Calendar.current.component(.year, from: Date())
+        let targetYear = Calendar.current.component(.year, from: date)
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = thisYear == targetYear ? "MMMM d" : "MMMM d, yyyy"
+        return formatter.string(from: date)
+    }
+
     var body: some View {
-        HStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(AppColors.textSecondary.opacity(0.1))
-                    .frame(width: 30, height: 30)
+        VStack(spacing: 8) {
+            HStack(spacing: 12) {
+                Button {
+                    showMoreView.toggle()
+                    haptic()
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(AppColors.textSecondary)
+                        .padding(8)
+                        .background(
+                            Circle()
+                                .fill(AppColors.textSecondary.opacity(0.15))
+                        )
+                }
                 
-                Image(systemName: "plus")
-                    .font(.system(size: 15))
-                    .fontWeight(.semibold)
-                    .foregroundStyle(AppColors.textSecondary)
-            }
-            
-            ZStack(alignment: .leading) {
-                if newTitle.isEmpty {
-                    Text("Add a new task...")
+                ZStack(alignment: .leading) {
+                    if newTitle.isEmpty {
+                        Text("Add a new task...")
+                            .font(.inter(fontStyle: .body))
+                            .foregroundColor(AppColors.textSecondary)
+                            .padding(.leading, 4)
+                    }
+                    
+                    TextField("", text: $newTitle)
                         .font(.inter(fontStyle: .body))
                         .foregroundColor(AppColors.textSecondary)
                         .padding(.leading, 4)
+                        .onSubmit { submit() }
                 }
                 
-                TextField("", text: $newTitle)
-                    .font(.inter(fontStyle: .body))
-                    .foregroundColor(AppColors.textSecondary)
-                    .padding(.leading, 4)
-                    .onSubmit {
-                        submit()
+                Button {
+                    submit()
+                } label: {
+                    ZStack {
+                        Circle()
+                            .fill((Color(hex: list.color) ?? .gray).opacity(0.25))
+                            .frame(width: 40, height: 40)
+                        
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(Color(hex: list.color) ?? .gray)
                     }
-            }
-            
-            Button {
-                submit()
-            } label: {
-                ZStack {
-                    Circle()
-                        .fill((Color(hex: list.color) ?? .gray).opacity(0.25))
-                        .frame(width: 40, height: 40)
-                    
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundStyle(Color(hex: list.color) ?? .gray)
                 }
+                .disabled(newTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .opacity(newTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.4 : 1)
             }
-            .disabled(newTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            .opacity(newTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.4 : 1)
+            .padding(8)
+            .background(AppColors.backgroundSecondary)
+            .cornerRadius(16)
+            
+            if showMoreView {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Set due date")
+                        .font(.inter(fontStyle: .caption, fontWeight: .semibold))
+                        .foregroundColor(AppColors.textSecondary)
+                    
+                    HStack {
+                        Text(dueDate == nil ? "No due date" : formattedDate(dueDate!))
+                            .font(.inter(fontStyle: .body))
+                            .foregroundStyle(AppColors.textPrimary)
+                        
+                        Spacer()
+                        
+                        if storeKit.isSubscribed {
+                            ZStack {
+                                DatePicker(
+                                    "",
+                                    selection: Binding(
+                                        get: { dueDate ?? Date() },
+                                        set: { newDate in
+                                            dueDate = newDate
+                                            haptic()
+                                        }
+                                    ),
+                                    displayedComponents: .date
+                                )
+                                .labelsHidden()
+                                .datePickerStyle(.compact)
+                                .opacity(0.01)
+                                .allowsHitTesting(true)
+                                
+                                Circle()
+                                    .fill(AppColors.textSecondary.opacity(0.15))
+                                    .overlay(
+                                        Image(systemName: "calendar")
+                                            .foregroundStyle(AppColors.textSecondary)
+                                    )
+                                    .allowsHitTesting(false) // Important!
+                            }
+                            .frame(width: 32, height: 32)
+                            .clipped()
+                        } else {
+                            Button {
+                                toast.show(message: "🔒 Setting due date is a premium feature")
+                                haptic()
+                            } label: {
+                                Image(systemName: "calendar")
+                                    .foregroundStyle(AppColors.textSecondary)
+                                    .padding(8)
+                                    .background(
+                                        Circle()
+                                            .fill(AppColors.textSecondary.opacity(0.15))
+                                    )
+                            }
+                        }
+                    }
+                    .padding(12)
+                    .background(AppColors.backgroundSecondary)
+                    .cornerRadius(10)
+                    
+                    if dueDate != nil {
+                        Button("Clear") {
+                            dueDate = nil
+                            haptic()
+                        }
+                        .font(.inter(fontStyle: .caption))
+                        .foregroundColor(AppColors.accent)
+                    }
+                }
+                .padding()
+                .background(AppColors.backgroundSecondary)
+                .cornerRadius(12)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
-        .padding(8)
-        .background(AppColors.backgroundSecondary)
-        .cornerRadius(16)
-    //    .padding(.horizontal, 16)
     }
 }
+
+
 
 private struct TaskRowView: View {
     // this needs to be observed object. why? bc it says "watch the source of truth. if a @Published property changes, you need to know and rerun"
@@ -197,6 +300,26 @@ private struct TaskRowView: View {
     let list: List
     
     @ObservedObject var toast: ToastManager
+    
+    private func formattedDate(_ date: Date) -> String {
+        let calendar = Calendar.current
+
+        if calendar.isDateInToday(date) {
+            return "Today"
+        } else if calendar.isDateInYesterday(date) {
+            return "Yesterday"
+        } else if calendar.isDateInTomorrow(date) {
+            return "Tomorrow"
+        } else {
+            let currentYear = calendar.component(.year, from: Date())
+            let targetYear = calendar.component(.year, from: date)
+
+            let formatter = DateFormatter()
+            formatter.dateFormat = currentYear == targetYear ? "MMMM d" : "MMMM d, yyyy"
+            return formatter.string(from: date)
+        }
+    }
+
     
     var body: some View {
         ScrollView {
@@ -213,6 +336,14 @@ private struct TaskRowView: View {
                             .opacity(task.isComplete ? 0.8 : 1.0)
 
                         Spacer()
+                        
+                        if let dueDate = task.dueAt {
+                            Text(formattedDate(dueDate))
+                                .font(.inter(fontStyle: .caption))
+                                .foregroundStyle(AppColors.textPrimary)
+                                .strikethrough(task.isComplete, color: AppColors.textPrimary.opacity(0.8))
+                                .opacity(task.isComplete ? 0.8 : 1.0)
+                        }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(16)
@@ -256,34 +387,33 @@ private struct TaskRowView: View {
     }
 }
 
-/*
- 
- Preview content code below
- 
- */
+private struct ListViewPreviewWrapper: View {
+    @State var showListView: Bool = true
+    @StateObject private var toastManager = ToastManager()
 
-//private struct ListViewPreviewWrapper: View {
-//    @State var showListView: Bool = true
-//
-//    var body: some View {
-//        let mockList = List(
-//            name: "Groceries",
-//            color: "#7A5FFF",
-//            icon: "cart"
-//        )
-//
-//        let mockTasks = [
-//            Task(listId: mockList.id, title: "Buy milk", isComplete: false, dueAt: nil),
-//            Task(listId: mockList.id, title: "Eggs", isComplete: true, dueAt: nil),
-//            Task(listId: mockList.id, title: "Bread", isComplete: false, dueAt: nil)
-//        ]
-//
-//        let mockVM = TaskViewModel(for: mockList, mockTasks: mockTasks)
-//
-//        ListView(list: mockList, showListView: $showListView, taskVM: mockVM)
-//    }
-//}
-//
+    var body: some View {
+        let mockList = List(
+            name: "Groceries",
+            color: "#7A5FFF",
+            icon: "cart",
+            idx: 0
+        )
+
+        let vm = TaskViewModel(for: mockList)
+        vm.tasks = [
+            Task(listId: mockList.id, title: "Buy milk", isComplete: false, dueAt: nil, idx: 0),
+            Task(listId: mockList.id, title: "Eggs", isComplete: true, dueAt: nil, idx: 1),
+            Task(listId: mockList.id, title: "Bread", isComplete: false, dueAt: nil, idx: 2)
+        ]
+
+        return ListView(
+            list: mockList,
+            showListView: $showListView,
+            onTasksChanged: {},
+            toast: toastManager
+        )
+    }
+}
 //
 //#Preview {
 //    ListViewPreviewWrapper()
