@@ -194,10 +194,10 @@ private struct ChooseIconSection: View {
                         Circle()
                             .fill(AppColors.backgroundSecondary)
                     )
-                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .frame(maxWidth: .infinity, alignment: .center)
             }
             .padding(.top, 8)
-
+            .padding(.bottom, -16)
         }
     }
 }
@@ -257,9 +257,10 @@ private struct ChooseColorSection: View {
                         Circle()
                             .fill(AppColors.backgroundSecondary)
                     )
-                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .frame(maxWidth: .infinity, alignment: .center)
             }
-            .padding(.top, 4)
+            .padding(.top, 8)
+            .padding(.bottom, -16)
         }
     }
 }
@@ -308,7 +309,7 @@ private struct CreateList: View {
         .disabled(isDisabled)
     }
 }
-//
+
 //#Preview {
 //    AddListView(
 //        listVM: ListViewModel(),

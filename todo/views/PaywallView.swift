@@ -101,7 +101,7 @@ private struct FeaturesView: View {
         .init(icon: "number.square", title: "Unlimited lists", description: "Create as many lists as you need", color: .purple),
         .init(icon: "wand.and.sparkles", title: "Full customization", description: "Unlock all folder icons and colors", color: .green),
         .init(icon: "moon", title: "Dark mode", description: "Access to a beautiful dark mode", color: .gray),
-        .init(icon: "heart", title: "Support an indie developer", description: "Get updates, features, and good chakra", color: .red),
+        .init(icon: "calendar", title: "Set due dates", description: "Stay on top of your plans", color: .red),
         .init(icon: "hourglass", title: "... and more!", description: "Your feedback helps shape what’s next", color: .cyan)
     ]
     

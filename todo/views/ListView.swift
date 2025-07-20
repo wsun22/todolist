@@ -164,15 +164,14 @@ private struct NewTaskView: View {
             HStack(spacing: 12) {
                 Button {
                     showMoreView.toggle()
-                    haptic()
                 } label: {
-                    Image(systemName: "ellipsis.circle")
+                    Image(systemName: showMoreView ? "chevron.up" : "chevron.down")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(AppColors.textSecondary)
+                        .foregroundColor(AppColors.textPrimary)
                         .padding(8)
                         .background(
                             Circle()
-                                .fill(AppColors.textSecondary.opacity(0.15))
+                                .fill(AppColors.backgroundSecondary)
                         )
                 }
                 
@@ -325,66 +324,102 @@ private struct TaskRowView: View {
         ScrollView {
             VStack(spacing: 12) {
                 ForEach(taskVM.tasks) { task in
-                    HStack {
-                        Image(systemName: task.isComplete ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(Color(hex: list.color) ?? .gray)
-
-                        Text(task.title)
-                            .font(.inter(fontStyle: .body))
-                            .foregroundStyle(AppColors.textPrimary)
-                            .strikethrough(task.isComplete, color: AppColors.textPrimary.opacity(0.8))
-                            .opacity(task.isComplete ? 0.8 : 1.0)
-
-                        Spacer()
-                        
-                        if let dueDate = task.dueAt {
-                            Text(formattedDate(dueDate))
-                                .font(.inter(fontStyle: .caption))
-                                .foregroundStyle(AppColors.textPrimary)
-                                .strikethrough(task.isComplete, color: AppColors.textPrimary.opacity(0.8))
-                                .opacity(task.isComplete ? 0.8 : 1.0)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(16)
-                    .background((Color(hex: list.color) ?? .gray).opacity(0.25))
-                    .cornerRadius(16)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        withAnimation {
-                            taskVM.toggleTask(task)
-                        }
-                        haptic()
-                    }
-                    .onLongPressGesture {
-                        taskToDelete = task
-                        showDeleteConfirm = true
-                        
-                        haptic()
-                    }
-                    .confirmationDialog(
-                        "Delete this task?",
-                        isPresented: $showDeleteConfirm,
-                        titleVisibility: .visible
-                    ) {
-                        Button("Delete", role: .destructive) {
-                            if let task = taskToDelete {
-                                taskVM.deleteTask(task)
-                                taskToDelete = nil
-                                toast.show(message: "Task deleted!")
-                                
-                                haptic()
+                    TaskCardView(
+                        task: task,
+                        list: list,
+                        isSelectedForDelete: taskToDelete?.id == task.id,
+                        showTrashOverlay: taskToDelete != nil,
+                        onTap: {
+                            withAnimation {
+                                taskVM.toggleTask(task)
                             }
-                        }
-                        Button("Cancel", role: .cancel) {
+                            haptic()
+                        },
+                        onLongPress: {
+                            taskToDelete = task
+                            showDeleteConfirm = true
+                            haptic()
+                        },
+                        formattedDate: formattedDate
+                    )
+                }
+                .confirmationDialog(
+                    "Delete task “\(taskToDelete?.title ?? "")”?",
+                    isPresented: $showDeleteConfirm,
+                    titleVisibility: .visible
+                ) {
+                    Button("Delete", role: .destructive) {
+                        if let task = taskToDelete {
+                            taskVM.deleteTask(task)
+                            toast.show(message: "Task deleted!")
+                            haptic()
                             taskToDelete = nil
                         }
+                    }
+                    Button("Cancel", role: .cancel) {
+                        taskToDelete = nil
                     }
                 }
             }
         }
         .scrollIndicators(.hidden)
     }
+    
+    private struct TaskCardView: View {
+        let task: Task
+        let list: List
+        let isSelectedForDelete: Bool
+        let showTrashOverlay: Bool
+        let onTap: () -> Void
+        let onLongPress: () -> Void
+        let formattedDate: (Date) -> String
+
+        var body: some View {
+            ZStack {
+                HStack {
+                    Image(systemName: task.isComplete ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(Color(hex: list.color) ?? .gray)
+
+                    Text(task.title)
+                        .font(.inter(fontStyle: .body))
+                        .foregroundStyle(AppColors.textPrimary)
+                        .strikethrough(task.isComplete, color: AppColors.textPrimary.opacity(0.8))
+                        .opacity(task.isComplete ? 0.8 : 1.0)
+
+                    Spacer()
+
+                    if let dueDate = task.dueAt {
+                        Text(formattedDate(dueDate))
+                            .font(.inter(fontStyle: .caption))
+                            .foregroundStyle(AppColors.textPrimary)
+                            .strikethrough(task.isComplete, color: AppColors.textPrimary.opacity(0.8))
+                            .opacity(task.isComplete ? 0.8 : 1.0)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(16)
+                .background((Color(hex: list.color) ?? .gray).opacity(0.25))
+                .cornerRadius(16)
+                .contentShape(Rectangle())
+                .opacity(isSelectedForDelete || !showTrashOverlay ? 1 : 0.3)
+                .onTapGesture { onTap() }
+                .onLongPressGesture { onLongPress() }
+
+                if isSelectedForDelete {
+                    Color.red.opacity(0.6)
+                        .cornerRadius(16)
+                        .overlay(
+                            Image(systemName: "trash")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(.white)
+                        )
+                        .transition(.opacity)
+                        .animation(.easeInOut, value: isSelectedForDelete)
+                }
+            }
+        }
+    }
+
 }
 
 private struct ListViewPreviewWrapper: View {
