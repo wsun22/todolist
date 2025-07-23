@@ -29,11 +29,7 @@ struct List: Codable, Identifiable, Equatable, FetchableRecord, PersistableRecor
     }
     
     enum CodingKeys: String, CodingKey {
-        case id
-        case name
-        case color
-        case icon
-        case idx
+        case id, name, color, icon, idx
         case createdAt = "created_at"
     }
 }
@@ -103,13 +99,11 @@ struct Task: Codable, Identifiable, FetchableRecord, PersistableRecord {
     }
     
     enum CodingKeys: String, CodingKey {
-        case id
+        case id, title, idx
         case listId = "list_id"
-        case title
         case isComplete = "is_complete"
         case createdAt = "created_at"
         case dueAt = "due_at"
-        case idx
     }
 }
 
